@@ -1,0 +1,2 @@
+# Localizing
+@LocalizedStrings Macro
