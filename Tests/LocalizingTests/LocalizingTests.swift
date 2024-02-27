@@ -1,3 +1,10 @@
+//
+//  LocalizingTests.swift
+//  Localizing
+//
+//  Created by Larry Gensch on 2/14/24.
+//  Copyright © 2024 by Larry Gensch. All rights reserved.
+
 import SwiftSyntaxMacros
 import SwiftSyntaxMacrosTestSupport
 import SwiftSyntaxMacroExpansion
@@ -39,9 +46,6 @@ final class LocalizingTests: XCTestCase {
 
                 static let key2 = NSLocalizedString("about_key2", tableName: nil, bundle: .main, value: "Localized value 2", comment: "")
             }
-
-            extension L: LocalizedStrings {
-            }
             """,
 
             macros: testMacros
@@ -74,9 +78,6 @@ final class LocalizingTests: XCTestCase {
                 static let key1 = NSLocalizedString("about_key1", tableName: "tbl", bundle: .main, value: "Localized value 1", comment: "")
 
                 static let key2 = NSLocalizedString("about_key2", tableName: "tbl", bundle: .main, value: "Localized value 2", comment: "")
-            }
-
-            extension L: LocalizedStrings {
             }
             """,
 
@@ -115,9 +116,6 @@ final class LocalizingTests: XCTestCase {
 
                 static let key3 = NSLocalizedString("key3", tableName: nil, bundle: .main, value: "key3", comment: "")
             }
-
-            extension L: LocalizedStrings {
-            }
             """,
 
             macros: testMacros
@@ -154,9 +152,6 @@ final class LocalizingTests: XCTestCase {
                 static let key2 = NSLocalizedString("key2", tableName: nil, bundle: .main, value: "Localized value 2", comment: "")
 
                 static let key3 = NSLocalizedString("key3", tableName: nil, bundle: .main, value: "key3", comment: "")
-            }
-
-            extension L: LocalizedStrings {
             }
             """,
 
@@ -196,9 +191,6 @@ final class LocalizingTests: XCTestCase {
 
                 static let key3 = NSLocalizedString("Screens.MainScreen.key3", tableName: nil, bundle: .main, value: "key3", comment: "")
             }
-
-            extension L: LocalizedStrings {
-            }
             """,
 
             macros: testMacros
@@ -236,9 +228,6 @@ final class LocalizingTests: XCTestCase {
 
                 static let key3 = NSLocalizedString("key3", tableName: nil, bundle: .main, value: "key3", comment: "")
             }
-
-            extension L: LocalizedStrings {
-            }
             """,
 
             macros: testMacros
@@ -248,5 +237,40 @@ final class LocalizingTests: XCTestCase {
 #endif
     }
 
+    func testReservedWords() throws {
+#if canImport(LocalizingMacros)
+        assertMacroExpansion(
+            """
+            @LocalizedStrings(bundle: .main)
+            enum L {
+                private enum Strings: String {
+                    case `class` = "Localized value 1"
+                    case `associatedtype` = "Localized value 2"
+                    case key3
+                }
+            }
+            """,
+            expandedSource:
+            """
+            enum L {
+                private enum Strings: String {
+                    case `class` = "Localized value 1"
+                    case `associatedtype` = "Localized value 2"
+                    case key3
+                }
 
+                static let `class` = NSLocalizedString("class", tableName: nil, bundle: .main, value: "Localized value 1", comment: "")
+
+                static let `associatedtype` = NSLocalizedString("associatedtype", tableName: nil, bundle: .main, value: "Localized value 2", comment: "")
+
+                static let key3 = NSLocalizedString("key3", tableName: nil, bundle: .main, value: "key3", comment: "")
+            }
+            """,
+
+            macros: testMacros
+        )
+#else
+        throw XCTSkip("macros are only supported when running tests for the host platform")
+#endif
+    }
 }

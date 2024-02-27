@@ -1,17 +1,11 @@
-// The Swift Programming Language
-// https://docs.swift.org/swift-book
+//
+//  Localizing.swift
+//  Localizing
+//
+//  Created by Larry Gensch on 2/14/24.
+//  Copyright © 2024 by Larry Gensch. All rights reserved.
 
 import Foundation
-
-public protocol LocalizedStrings {
-    static var defaultTableName: String? { get }
-    static var defaultBundle: Bundle { get }
-}
-
-public extension LocalizedStrings {
-    static var defaultTableName: String? { nil }
-    static var defaultBundle: Bundle { .main }
-}
 
 /// Use this macro to create localizable strings that are easily accessed within
 /// your code base.
@@ -96,8 +90,6 @@ public extension LocalizedStrings {
 ///
 ///     static let key2 = NSLocalizedString("main_key2", tableName: "tbl", bundle: .main, value: "key2", comment: "")
 /// }
-/// extension L: LocalizedStrings {
-/// }
 /// ```
 ///
 /// ## Xcode autogeneration
@@ -114,7 +106,6 @@ public extension LocalizedStrings {
 /// `NSLocalizedString()`s. The values for the `keyValue` and `value` Strings in the
 /// generated code can be used to cut/paste into your strings catalog.
 ///
-@attached(extension, conformances: LocalizedStrings, names: arbitrary)
 @attached(member, names: arbitrary)
 public macro LocalizedStrings(prefix: String? = nil,
                               separator: String? = nil,

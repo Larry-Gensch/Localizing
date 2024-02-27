@@ -1,3 +1,10 @@
+//
+//  LocalizingMacro.swift
+//  Localizing
+//
+//  Created by Larry Gensch on 2/14/24.
+//  Copyright © 2024 by Larry Gensch. All rights reserved.
+
 import Foundation
 import SwiftCompilerPlugin
 import SwiftSyntax
@@ -5,46 +12,43 @@ import SwiftSyntaxBuilder
 import SwiftSyntaxMacros
 
 public struct LocalizedStringsMacro: MemberMacro {
-    enum C {
+    private enum C {
         static let defaultEnum = "Strings"
         static let defaultSeparator = "_"
+        static let defaultTable = "nil"
+        static let defaultBundle = ".main"
+        static let defaultComment = ""
+
+        static let quote = #"""#
+        static let quoteRegex = #/^"(.*)"$/#
+        static let backtick = "`"
+        static let backtickRegex = #/^`(\w+)`$/#
 
         static func localizedStringTemplate(name: String,
                                             key: String,
-                                            table: String?,
+                                            table: String,
                                             bundle: String,
                                             quotedValue: String,
                                             comment: String) -> String {
-            let table = table ?? "nil"
-
             return [
                 "static let \(name) =",
                 "NSLocalizedString(\(key),",
                 "tableName: \(table),",
                 "bundle: \(bundle),",
                 "value: \(quotedValue),",
-                "comment: \"\(comment)\")"
+                "comment: \(comment))"
             ]
                 .joined(separator: " ")
-
         }
     }
 
-    enum Variables: String, CaseIterable, Hashable {
+    private enum Variables: String, CaseIterable, Hashable {
         case prefix
         case table
         case separator
         case stringsEnum
         case bundle
-
         
-        var type: Any {
-            switch self {
-            case .bundle: Bundle.self
-            default: StringLiteralExprSyntax.self
-            }
-        }
-
         var name: String { rawValue }
     }
 
@@ -57,11 +61,26 @@ public struct LocalizedStringsMacro: MemberMacro {
         }
     }
 
-    private static func dequote(_ string: String?) -> String? {
+    private static func removeQuotes(_ string: String?) -> String? {
         string?
-            .replacing(#/^"(.*)"$/#) { match in
+            .replacing(C.quoteRegex) { match in
                 match.output.1
             }
+    }
+
+    private static func removeBackticks(_ string: String) -> String {
+        string
+            .replacing(C.backtickRegex) { match in
+                match.output.1
+            }
+    }
+
+    private static func addQuote(_ string: String) -> String {
+        C.quote + string + C.quote
+    }
+
+    private static func addBacktick(_ string: String) -> String {
+        C.backtick + string + C.backtick
     }
 
     public static func expansion(
@@ -81,13 +100,13 @@ public struct LocalizedStringsMacro: MemberMacro {
             variables = extractArgs(from: args)
         }
 
-
-        let prefix = dequote(variables[.prefix])
-
-        let table = variables[.table]
-        let bundle = variables[.bundle] ?? ".main"
-        let separator = dequote(variables[.separator]) ?? C.defaultSeparator
-        let stringsEnum = dequote(variables[.stringsEnum]) ?? C.defaultEnum
+        // Set up variable replacements and their defaults
+        let prefix = removeQuotes(variables[.prefix])
+        let table = variables[.table] ?? C.defaultTable
+        let bundle = variables[.bundle] ?? C.defaultBundle
+        let separator = removeQuotes(variables[.separator]) ?? C.defaultSeparator
+        let stringsEnum = removeQuotes(variables[.stringsEnum]) ?? C.defaultEnum
+        let comment = addQuote("")
 
         guard let stringsDecl = enumDecl
             .memberBlock
@@ -104,19 +123,18 @@ public struct LocalizedStringsMacro: MemberMacro {
                 $0.decl.as(EnumCaseDeclSyntax.self)?
                     .elements
                     .map {
-                        let name = $0.name.text
-                        let fixedName = $0.name.text.replacingOccurrences(of: "`", with: "")
+                        let safeName = $0.name.text
+                        let name = removeBackticks(safeName)
 
-                        let key: String = if let prefix {
-                            prefix + separator + fixedName
+                        let key = if let prefix {
+                            prefix + separator + name
                         }
                         else {
-                            fixedName
+                            name
                         }
-                        let keyQuoted = "\"\(key)\""
-                        let value = $0.rawValue?.value.description ?? "\"\(name)\""
-                        let comment = ""
-                        return C.localizedStringTemplate(name: name,
+                        let keyQuoted = addQuote(key)
+                        let value = $0.rawValue?.value.description ?? addQuote(name)
+                        return C.localizedStringTemplate(name: safeName,
                                                          key: keyQuoted,
                                                          table: table,
                                                          bundle: bundle,
@@ -130,24 +148,13 @@ public struct LocalizedStringsMacro: MemberMacro {
         return resources
     }
 
-    enum LocalizedStringsError: String, Error {
+    public enum LocalizedStringsError: String, Error {
         case appliesOnlyToEnumerations = "@LocalizedStrings only applies only to enumerations"
         case noStringsEnumFound = "@LocalizedStrings requires your enum contain an embedded Strings enum"
         case simpleParameter = "@LocalizedString requires its parameters to be a simple String value"
     }
 }
 
-extension LocalizedStringsMacro: ExtensionMacro {
-    public static func expansion(of node: SwiftSyntax.AttributeSyntax,
-                                 attachedTo declaration: some SwiftSyntax.DeclGroupSyntax,
-                                 providingExtensionsOf type: some SwiftSyntax.TypeSyntaxProtocol,
-                                 conformingTo protocols: [SwiftSyntax.TypeSyntax],
-                                 in context: some SwiftSyntaxMacros.MacroExpansionContext) throws -> [SwiftSyntax.ExtensionDeclSyntax] {
-        return try [ExtensionDeclSyntax("extension \(type.trimmed): LocalizedStrings",
-                                        membersBuilder: {
-        })]
-    }
-}
 @main
 struct LocalizingPlugin: CompilerPlugin {
     let providingMacros: [Macro.Type] = [

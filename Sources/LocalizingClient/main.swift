@@ -1,3 +1,11 @@
+//
+//  main.swift
+//  Localizing
+//
+//  Created by Larry Gensch on 2/14/24.
+//  Copyright © 2024 by Larry Gensch. All rights reserved.
+//
+
 import Localizing
 import Foundation
 

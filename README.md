@@ -84,8 +84,6 @@ enum L {
 
     static let key2 = NSLocalizedString("main_key2", tableName: "tbl", bundle: .main, value: "key2", comment: "")
 }
-extension L: LocalizedStrings {
-}
 ```
 
 ## Xcode autogeneration
