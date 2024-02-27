@@ -26,7 +26,7 @@ final class LocalizingTests: XCTestCase {
         #if canImport(LocalizingMacros)
         assertMacroExpansion(
             """
-            @LocalizedStrings(prefix: "about")
+            @LocalizedStrings(prefix: "about", separator: ".")
             enum L {
                 private enum Strings: String {
                     case key1 = "Localized value 1"
@@ -42,9 +42,9 @@ final class LocalizingTests: XCTestCase {
                     case key2 = "Localized value 2"
                 }
 
-                static let key1 = NSLocalizedString("about_key1", tableName: nil, bundle: .main, value: "Localized value 1", comment: "")
+                static let key1 = NSLocalizedString("about.key1", tableName: nil, bundle: .main, value: "Localized value 1", comment: "")
 
-                static let key2 = NSLocalizedString("about_key2", tableName: nil, bundle: .main, value: "Localized value 2", comment: "")
+                static let key2 = NSLocalizedString("about.key2", tableName: nil, bundle: .main, value: "Localized value 2", comment: "")
             }
             """,
 
@@ -59,7 +59,7 @@ final class LocalizingTests: XCTestCase {
 #if canImport(LocalizingMacros)
         assertMacroExpansion(
             """
-            @LocalizedStrings(prefix: "about", table: "tbl")
+            @LocalizedStrings(table: "tbl")
             enum L {
                 private enum Strings: String {
                     case key1 = "Localized value 1"
@@ -75,9 +75,9 @@ final class LocalizingTests: XCTestCase {
                     case key2 = "Localized value 2"
                 }
 
-                static let key1 = NSLocalizedString("about_key1", tableName: "tbl", bundle: .main, value: "Localized value 1", comment: "")
+                static let key1 = NSLocalizedString("key1", tableName: "tbl", bundle: .main, value: "Localized value 1", comment: "")
 
-                static let key2 = NSLocalizedString("about_key2", tableName: "tbl", bundle: .main, value: "Localized value 2", comment: "")
+                static let key2 = NSLocalizedString("key2", tableName: "tbl", bundle: .main, value: "Localized value 2", comment: "")
             }
             """,
 
@@ -273,4 +273,50 @@ final class LocalizingTests: XCTestCase {
         throw XCTSkip("macros are only supported when running tests for the host platform")
 #endif
     }
+
+    func testSeparatorDiagnostic() throws {
+#if canImport(LocalizingMacros)
+        let message = """
+            The default separator is changing from '_' to '.' as of version 1.0.0.
+            If you wish to keep using the underscore as a separator, it is suggested
+            that you add an explicit separator argument to the @LocalizedStrings macro.
+            """
+
+        let diagSpec = DiagnosticSpec(message: message,
+                                      line: 1,
+                                      column: 1,
+                                      severity: .warning)
+        assertMacroExpansion(
+            """
+            @LocalizedStrings(prefix: "about", table: "tbl")
+            enum L {
+                private enum Strings: String {
+                    case key1 = "Localized value 1"
+                    case key2 = "Localized value 2"
+                }
+            }
+            """,
+            expandedSource:
+            """
+            enum L {
+                private enum Strings: String {
+                    case key1 = "Localized value 1"
+                    case key2 = "Localized value 2"
+                }
+
+                static let key1 = NSLocalizedString("about_key1", tableName: "tbl", bundle: .main, value: "Localized value 1", comment: "")
+
+                static let key2 = NSLocalizedString("about_key2", tableName: "tbl", bundle: .main, value: "Localized value 2", comment: "")
+            }
+            """,
+            diagnostics: [diagSpec],
+
+            macros: testMacros
+        )
+#else
+        throw XCTSkip("macros are only supported when running tests for the host platform")
+#endif
+    }
+
+
 }

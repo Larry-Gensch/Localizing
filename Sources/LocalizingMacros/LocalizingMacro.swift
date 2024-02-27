@@ -10,6 +10,7 @@ import SwiftCompilerPlugin
 import SwiftSyntax
 import SwiftSyntaxBuilder
 import SwiftSyntaxMacros
+import SwiftDiagnostics
 
 public struct LocalizedStringsMacro: MemberMacro {
     private enum C {
@@ -42,6 +43,14 @@ public struct LocalizedStringsMacro: MemberMacro {
         }
     }
 
+    enum L {
+        static let separatorChanging = """
+            The default separator is changing from '_' to '.' as of version 1.0.0.
+            If you wish to keep using the underscore as a separator, it is suggested
+            that you add an explicit separator argument to the @LocalizedStrings macro.
+            """
+    }
+
     private enum Variables: String, CaseIterable, Hashable {
         case prefix
         case table
@@ -50,15 +59,6 @@ public struct LocalizedStringsMacro: MemberMacro {
         case bundle
         
         var name: String { rawValue }
-    }
-
-    private static func extractArgs(from args: LabeledExprListSyntax) -> [Variables: String] {
-        args.reduce(into: [:]) { partialResult, arg in
-            if case .identifier(let value) = arg.label?.tokenKind,
-               let variable = Variables(rawValue: value) {
-                partialResult[variable] = arg.expression.description
-            }
-        }
     }
 
     private static func removeQuotes(_ string: String?) -> String? {
@@ -83,6 +83,40 @@ public struct LocalizedStringsMacro: MemberMacro {
         C.backtick + string + C.backtick
     }
 
+    enum WarningDiagnostic: DiagnosticMessage {
+        var diagnosticID: SwiftDiagnostics.MessageID {
+            switch self {
+            case .changing:
+                    .init(domain: "org.amber3.macros.Localizing", id: "changing")
+            }
+        }
+
+        case changing(message: String, severity: DiagnosticSeverity)
+
+        var message: String {
+            switch self {
+            case .changing(let message, _):
+                message
+            }
+        }
+
+        var severity: DiagnosticSeverity {
+            switch self {
+            case .changing(_, let severity):
+                severity
+            }
+        }
+    }
+
+    private static func extractArgs(from args: LabeledExprListSyntax) -> [Variables: String] {
+        args.reduce(into: [:]) { partialResult, arg in
+            if case .identifier(let value) = arg.label?.tokenKind,
+               let variable = Variables(rawValue: value) {
+                partialResult[variable] = arg.expression.description
+            }
+        }
+    }
+
     public static func expansion(
         of node: AttributeSyntax,
         providingMembersOf declaration: some DeclGroupSyntax,
@@ -92,14 +126,21 @@ public struct LocalizedStringsMacro: MemberMacro {
             throw LocalizedStringsError.appliesOnlyToEnumerations
         }
 
-        var variables = [Variables: String]()
-
-        if let args = enumDecl.attributes
+        guard let args = enumDecl.attributes
             .first?.as(AttributeSyntax.self)?
-            .arguments?.as(LabeledExprListSyntax.self) {
-            variables = extractArgs(from: args)
+            .arguments?.as(LabeledExprListSyntax.self) else {
+            throw LocalizedStringsError.parserError
         }
 
+        let variables = extractArgs(from: args)
+
+        if variables[.separator] == nil,
+           variables[.prefix] != nil {
+            let diagnostic = WarningDiagnostic.changing(message: L.separatorChanging,
+                                                        severity: .warning)
+            context.diagnose(Diagnostic(node: node,
+                                        message: diagnostic))
+        }
         // Set up variable replacements and their defaults
         let prefix = removeQuotes(variables[.prefix])
         let table = variables[.table] ?? C.defaultTable
@@ -149,6 +190,7 @@ public struct LocalizedStringsMacro: MemberMacro {
     }
 
     public enum LocalizedStringsError: String, Error {
+        case parserError = "Parser error"
         case appliesOnlyToEnumerations = "@LocalizedStrings only applies only to enumerations"
         case noStringsEnumFound = "@LocalizedStrings requires your enum contain an embedded Strings enum"
         case simpleParameter = "@LocalizedString requires its parameters to be a simple String value"

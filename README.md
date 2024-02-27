@@ -5,33 +5,46 @@ Use this macro to create localizable strings that are easily accessed within
 your code base.
 
 ## Parameters
+
 - prefix: The prefix to use for generating localization keys. If omitted, all the key names
-will be generated without a prefix.
+  will be generated without a prefix.
 - separator: A separator to use between the `prefix` value (if supplied) and the
-generated key name. If omitted, defaults to an underscore (_).
+  generated key (see warning))
 - table: The name of the Localization file to be used for accessing the localizations. If omitted,
-this defaults to `nil`, which means the base name of the filename will be `Localized`.
+  this defaults to `nil`, which means the base name of the filename will be `Localized`.
 - stringsEnum: The name of the inner enumeration that details the base keys and default values
-for the localization. If `nil`, defaults to the name `Strings`.
+  for the localization. If `nil`, defaults to the name `Strings`.
+
+> Warning: When this package is upgraded to 1.0.0, **the default separator will be changed from underscore (\_)
+  to a dot (.)**. As such, for users of version 0.9.x, a diagnostic warning will be emitted whenever
+  a prefix is supplied without a separator that suggests adding a separator parameter to the macro call.
+  This diagnostic will be removed in versions 1.0.0 of this package.
 
 Simply prefix an `enum` with the `@LocalizedStrings()` macro (that may be
-called with optional parameters). Within this `enum`, create another  `enum` within it called `Strings`
-(with a `RawValue` type `String`). The name `Strings` can be modified by
-using the `stringsEnum:` parameter to the `@LocalizedStrings()` macro.
-Each case in this internal will contain a localization key (the case name) and its associated `rawValue`.
+called with optional parameters menioned above). Within this `enum`, create another  `enum`
+within it called `Strings`  (with a `RawValue` type `String`).
+
+Each case in this internal enumeration will contain a localization key (the case name) and its
+associated `rawValue` (default value).
+
+> Tip: The name `Strings` can be modified using the `stringsEnum:` parameter to the
+  `@LocalizedStrings()` macro.
 
 ## Symbol Generation
 
-The `prefix:` parameter to the `@LocalizedStrings` macro is used to give some organization
-to the localization files. For example, for a SwiftUI project, you might want to use prefixes to specify
-where the localization is used. Such an example might be `"Screens.main"` to specify that the
-localizations pertain to the `main` screen in the app. All generated localizations for the associated
-`enum` will use that prefix (along with the `separator:`) to generate the localization key.
+The `prefix:` and `separator:` parameters to the `@LocalizedStrings` macro are
+used to give some organization to the localization files. For example, for a
+SwiftUI project, you might want to use prefixes to specify where the
+localization is used. Such an example might be `"Screens.main"` to specify that
+the localizations pertain to the `main` screen in the app. All generated 
+localizations for the associated `enum` will use that prefix (along with 
+the `separator:`) to generate the localization key.
 
 The `separator:` parameter to the `@LocalizedStrings` macro is used to provide a separator
-that will be inserted between the `prefix:` value (if specified), and the generated localization key.
-So, if the prefix is `"Screens.main"`, a good separator to use might be the dot (`.`). By default,
-the separator is an underscore (`_`).
+that will be inserted between the `prefix:` value and the generated localization key.
+So, if the prefix is `"Screens.main"`, a good separator to use might be the dot (`.`).
+By default, for versions 0.9.x, the separator is an underscore (`_`).
+This will change in 1.0.0 to dot (`.`).
 
 The `stringsEnum` specifies the name of an `enum` with a `RawValue` of type `String`. The cases
 within this enumeration are used to specify the base localization key ((`case` name) and the `rawValue`
@@ -49,15 +62,15 @@ static let name = NSLocalizedString(keyName,
                                     comment: "")
 ```
 
-- `name`: A case name found in the `stringsEnum` enumeration
-- `keyName`: The name of the localization entry, optionally prefixed with the `prefix:`
+- term `name`: A case name found in the `stringsEnum` enumeration
+- term `keyName`: The name of the localization entry, optionally prefixed with the `prefix:`
 and `separator:` passed to the `@LocalizedStrings()` macro.
-- `tableName`: Defaults to `nil`, but can be overridden by using the `table:` parameter
+- term `tableName`: Defaults to `nil`, but can be overridden by using the `table:` parameter
 passed to the `@LocalizedStrings()` macro.
-- `bundle`: Defaults to `.main`, but can be overridden by the `bundle:` parameter
+- term `bundle`: Defaults to `.main`, but can be overridden by the `bundle:` parameter
 passed to the `@LocalizedStrings()` macro.
-- `defaultValue`: The `rawValue` found in the `stringsEnum` enumeration
-- `comment`: Always an empty string
+- term `defaultValue`: The `rawValue` found in the `stringsEnum` enumeration
+- term `comment`: Always an empty string
 
 The generated code will also extend the outer enumeration to conform to the
 `LocalizedStrings` protocol.
@@ -99,3 +112,4 @@ future date.
 As a workaround, simply use the `Expand macro` feature in Xcode to show the generated 
 `NSLocalizedString()`s. The values for the `keyValue` and `value` Strings in the
 generated code can be used to cut/paste into your strings catalog.
+
