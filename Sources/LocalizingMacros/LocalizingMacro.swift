@@ -6,6 +6,7 @@
 //  Copyright © 2024 by Larry Gensch. All rights reserved.
 
 import Foundation
+import SwiftUI
 import SwiftCompilerPlugin
 import SwiftSyntax
 import SwiftSyntaxBuilder
@@ -31,6 +32,22 @@ public struct LocalizedStringsMacro: MemberMacro {
                                             bundle: String,
                                             quotedValue: String,
                                             comment: String) -> String {
+            [
+                "static let \(name) =",
+                "LocalizedStringResource(\(key),",
+                "defaultValue: \(quotedValue),",
+                "table: \(table),",
+                "bundle: \(bundle))",
+            ]
+                .joined(separator: " ")
+        }
+
+        static func nsLocalizedStringTemplate(name: String,
+                                              key: String,
+                                              table: String,
+                                              bundle: String,
+                                              quotedValue: String,
+                                              comment: String) -> String {
             return [
                 "static let \(name) =",
                 "NSLocalizedString(\(key),",
@@ -44,11 +61,13 @@ public struct LocalizedStringsMacro: MemberMacro {
     }
 
     enum L {
-        static let separatorChanging = """
+        static let separatorChanging = NSLocalizedString("separator.warning",
+                                                               value: """
             The default separator is changing from '_' to '.' as of version 1.0.0.
             If you wish to keep using the underscore as a separator, it is suggested
             that you add an explicit separator argument to the @LocalizedStrings macro.
-            """
+            """,
+                                                         comment: "")
     }
 
     private enum Variables: String, CaseIterable, Hashable {

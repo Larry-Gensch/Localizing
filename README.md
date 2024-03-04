@@ -12,6 +12,8 @@ your code base.
   generated key (see warning))
 - table: The name of the Localization file to be used for accessing the localizations. If omitted,
   this defaults to `nil`, which means the base name of the filename will be `Localized`.
+- bundle: The bundle to be used for retrieving the localizations. Must be specified as a
+  `LocalizedStringsResource.BundleDescription`.
 - stringsEnum: The name of the inner enumeration that details the base keys and default values
   for the localization. If `nil`, defaults to the name `Strings`.
 
@@ -55,25 +57,20 @@ to. These constants will map to constants of type `NSLocalizedString` with the f
 (with newlines in the example output added for readability)
 
 ```
-static let name = NSLocalizedString(keyName,
-                                    tableName: tableName,
-                                    bundle: bundle,
-                                    value: defaultValue,
-                                    comment: "")
+static let name = LocalizedStringResource(keyName,
+                                          defaultValue: defaultValue,
+                                          table: tableName,
+                                          bundle: bundle)
 ```
 
 - term `name`: A case name found in the `stringsEnum` enumeration
 - term `keyName`: The name of the localization entry, optionally prefixed with the `prefix:`
 and `separator:` passed to the `@LocalizedStrings()` macro.
+- term `defaultValue`: The `rawValue` found in the `stringsEnum` enumeration
 - term `tableName`: Defaults to `nil`, but can be overridden by using the `table:` parameter
 passed to the `@LocalizedStrings()` macro.
 - term `bundle`: Defaults to `.main`, but can be overridden by the `bundle:` parameter
 passed to the `@LocalizedStrings()` macro.
-- term `defaultValue`: The `rawValue` found in the `stringsEnum` enumeration
-- term `comment`: Always an empty string
-
-The generated code will also extend the outer enumeration to conform to the
-`LocalizedStrings` protocol.
 
 ## An example
 

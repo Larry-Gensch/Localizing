@@ -24,6 +24,8 @@ import Foundation
 ///
 /// - table: The name of the Localization file to be used for accessing the localizations. If omitted,
 ///   this defaults to `nil`, which means the base name of the filename will be `Localized`.
+/// - bundle: The bundle to be used for retrieving the localizations. Must be specified as a
+///   ``LocalizedStringsResource.BundleDescription``.
 /// - stringsEnum: The name of the inner enumeration that details the base keys and default values
 ///   for the localization. If `nil`, defaults to the name `Strings`.
 ///
@@ -62,25 +64,20 @@ import Foundation
 /// (with newlines in the example output added for readability)
 ///
 /// ```
-/// static let name = NSLocalizedString(keyName,
-///                                     tableName: tableName,
-///                                     bundle: bundle,
-///                                     value: defaultValue,
-///                                     comment: "")
+/// static let name = LocalizedStringResource(keyName,
+///                                           defaultValue: defaultValue,
+///                                           table: tableName,
+///                                           bundle: bundle)
 /// ```
 ///
 /// - term `name`: A case name found in the `stringsEnum` enumeration
 /// - term `keyName`: The name of the localization entry, optionally prefixed with the `prefix:`
 /// and `separator:` passed to the `@LocalizedStrings()` macro.
+/// - term `defaultValue`: The `rawValue` found in the `stringsEnum` enumeration
 /// - term `tableName`: Defaults to `nil`, but can be overridden by using the `table:` parameter
 /// passed to the `@LocalizedStrings()` macro.
 /// - term `bundle`: Defaults to `.main`, but can be overridden by the `bundle:` parameter
 /// passed to the `@LocalizedStrings()` macro.
-/// - term `defaultValue`: The `rawValue` found in the `stringsEnum` enumeration
-/// - term `comment`: Always an empty string
-///
-/// The generated code will also extend the outer enumeration to conform to the
-/// `LocalizedStrings` protocol.
 ///
 /// ## An example
 ///
@@ -88,8 +85,8 @@ import Foundation
 /// @LocalizedStrings(prefix: "main", table: "tbl")
 /// enum L {
 ///     private enum Strings: String {
-///         case key1 = "localized key 1"
-///         case key2 = "localized key 2"
+///         case key1 = "localized value 1"
+///         case key2 = "localized value 2"
 ///     }
 /// }
 /// ```
@@ -98,11 +95,14 @@ import Foundation
 /// enum L {
 ///     private enum Strings: String {
 ///         case key1 = "localized value 1"
-///         case key2
+///         case key2 = "localized value 2"
 ///     }
 ///     static let key1 = NSLocalizedString("main_key1", tableName: "tbl", bundle: .main, value: "Localized value 1", comment: "")
 ///
-///     static let key2 = NSLocalizedString("main_key2", tableName: "tbl", bundle: .main, value: "key2", comment: "")
+///     static let key1 = LocalizedStringResource("main_key1", defaultValue: "localized value 1", table: "tbl"", bundle: .main)
+///
+///     static let key1 = LocalizedStringResource("main_key2", defaultValue: "localized value 2", table: "tbl"", bundle: .main)
+
 /// }
 /// ```
 ///
@@ -124,7 +124,7 @@ import Foundation
 public macro LocalizedStrings(prefix: String? = nil,
                               separator: String? = nil,
                               table: String? = nil,
-                              bundle: Bundle? = nil,
+                              bundle: LocalizedStringResource.BundleDescription? = nil,
                               stringsEnum: String? = nil) = #externalMacro(
     module: "LocalizingMacros",
     type: "LocalizedStringsMacro"
