@@ -42,9 +42,9 @@ final class LocalizingTests: XCTestCase {
                     case key2 = "Localized value 2"
                 }
 
-                static let key1 = LocalizedStringResource("about.key1", defaultValue: "Localized value 1", table: nil, bundle: .main)
+                static let key1 = String(localized: "about.key1", defaultValue: "Localized value 1", table: nil, bundle: .main)
 
-                static let key2 = LocalizedStringResource("about.key2", defaultValue: "Localized value 2", table: nil, bundle: .main)
+                static let key2 = String(localized: "about.key2", defaultValue: "Localized value 2", table: nil, bundle: .main)
             }
             """,
 
@@ -75,9 +75,9 @@ final class LocalizingTests: XCTestCase {
                     case key2 = "Localized value 2"
                 }
 
-                static let key1 = LocalizedStringResource("key1", defaultValue: "Localized value 1", table: "tbl", bundle: .main)
+                static let key1 = String(localized: "key1", defaultValue: "Localized value 1", table: "tbl", bundle: .main)
 
-                static let key2 = LocalizedStringResource("key2", defaultValue: "Localized value 2", table: "tbl", bundle: .main)
+                static let key2 = String(localized: "key2", defaultValue: "Localized value 2", table: "tbl", bundle: .main)
             }
             """,
 
@@ -110,11 +110,11 @@ final class LocalizingTests: XCTestCase {
                     case key3
                 }
 
-                static let key1 = LocalizedStringResource("key1", defaultValue: "Localized value 1", table: nil, bundle: .main)
+                static let key1 = String(localized: "key1", defaultValue: "Localized value 1", table: nil, bundle: .main)
 
-                static let key2 = LocalizedStringResource("key2", defaultValue: "Localized value 2", table: nil, bundle: .main)
+                static let key2 = String(localized: "key2", defaultValue: "Localized value 2", table: nil, bundle: .main)
 
-                static let key3 = LocalizedStringResource("key3", defaultValue: "key3", table: nil, bundle: .main)
+                static let key3 = String(localized: "key3", defaultValue: "key3", table: nil, bundle: .main)
             }
             """,
 
@@ -147,11 +147,11 @@ final class LocalizingTests: XCTestCase {
                     case key3
                 }
 
-                static let key1 = LocalizedStringResource("key1", defaultValue: "Localized value 1", table: nil, bundle: .main)
+                static let key1 = String(localized: "key1", defaultValue: "Localized value 1", table: nil, bundle: .main)
 
-                static let key2 = LocalizedStringResource("key2", defaultValue: "Localized value 2", table: nil, bundle: .main)
+                static let key2 = String(localized: "key2", defaultValue: "Localized value 2", table: nil, bundle: .main)
 
-                static let key3 = LocalizedStringResource("key3", defaultValue: "key3", table: nil, bundle: .main)
+                static let key3 = String(localized: "key3", defaultValue: "key3", table: nil, bundle: .main)
             }
             """,
 
@@ -185,11 +185,11 @@ final class LocalizingTests: XCTestCase {
                     case key3
                 }
 
-                static let key1 = LocalizedStringResource("Screens.MainScreen.key1", defaultValue: "Localized value 1", table: nil, bundle: .main)
+                static let key1 = String(localized: "Screens.MainScreen.key1", defaultValue: "Localized value 1", table: nil, bundle: .main)
 
-                static let key2 = LocalizedStringResource("Screens.MainScreen.key2", defaultValue: "Localized value 2", table: nil, bundle: .main)
+                static let key2 = String(localized: "Screens.MainScreen.key2", defaultValue: "Localized value 2", table: nil, bundle: .main)
 
-                static let key3 = LocalizedStringResource("Screens.MainScreen.key3", defaultValue: "key3", table: nil, bundle: .main)
+                static let key3 = String(localized: "Screens.MainScreen.key3", defaultValue: "key3", table: nil, bundle: .main)
             }
             """,
 
@@ -222,11 +222,11 @@ final class LocalizingTests: XCTestCase {
                     case key3
                 }
 
-                static let key1 = LocalizedStringResource("key1", defaultValue: "Localized value 1", table: nil, bundle: .main)
+                static let key1 = String(localized: "key1", defaultValue: "Localized value 1", table: nil, bundle: .main)
 
-                static let key2 = LocalizedStringResource("key2", defaultValue: "Localized value 2", table: nil, bundle: .main)
+                static let key2 = String(localized: "key2", defaultValue: "Localized value 2", table: nil, bundle: .main)
 
-                static let key3 = LocalizedStringResource("key3", defaultValue: "key3", table: nil, bundle: .main)
+                static let key3 = String(localized: "key3", defaultValue: "key3", table: nil, bundle: .main)
             }
             """,
 
@@ -259,11 +259,11 @@ final class LocalizingTests: XCTestCase {
                     case key3
                 }
 
-                static let `class` = LocalizedStringResource("class", defaultValue: "Localized value 1", table: nil, bundle: .main)
+                static let `class` = String(localized: "class", defaultValue: "Localized value 1", table: nil, bundle: .main)
 
-                static let `associatedtype` = LocalizedStringResource("associatedtype", defaultValue: "Localized value 2", table: nil, bundle: .main)
+                static let `associatedtype` = String(localized: "associatedtype", defaultValue: "Localized value 2", table: nil, bundle: .main)
 
-                static let key3 = LocalizedStringResource("key3", defaultValue: "key3", table: nil, bundle: .main)
+                static let key3 = String(localized: "key3", defaultValue: "key3", table: nil, bundle: .main)
             }
             """,
 
@@ -304,9 +304,9 @@ final class LocalizingTests: XCTestCase {
                     case key2 = "Localized value 2"
                 }
 
-                static let key1 = LocalizedStringResource("about_key1", defaultValue: "Localized value 1", table: "tbl", bundle: .main)
+                static let key1 = String(localized: "about_key1", defaultValue: "Localized value 1", table: "tbl", bundle: .main)
 
-                static let key2 = LocalizedStringResource("about_key2", defaultValue: "Localized value 2", table: "tbl", bundle: .main)
+                static let key2 = String(localized: "about_key2", defaultValue: "Localized value 2", table: "tbl", bundle: .main)
             }
             """,
             diagnostics: [diagSpec],

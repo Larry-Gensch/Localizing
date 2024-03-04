@@ -24,8 +24,7 @@ import Foundation
 ///
 /// - table: The name of the Localization file to be used for accessing the localizations. If omitted,
 ///   this defaults to `nil`, which means the base name of the filename will be `Localized`.
-/// - bundle: The bundle to be used for retrieving the localizations. Must be specified as a
-///   ``LocalizedStringsResource.BundleDescription``.
+/// - bundle: The bundle to be used for retrieving the localizations.
 /// - stringsEnum: The name of the inner enumeration that details the base keys and default values
 ///   for the localization. If `nil`, defaults to the name `Strings`.
 ///
@@ -64,10 +63,10 @@ import Foundation
 /// (with newlines in the example output added for readability)
 ///
 /// ```
-/// static let name = LocalizedStringResource(keyName,
-///                                           defaultValue: defaultValue,
-///                                           table: tableName,
-///                                           bundle: bundle)
+/// static let key1 = String(localized: "key1",
+///                          defaultValue: "Localized value 1",
+///                          table: nil,
+///                          bundle: .main)
 /// ```
 ///
 /// - term `name`: A case name found in the `stringsEnum` enumeration

@@ -34,7 +34,7 @@ public struct LocalizedStringsMacro: MemberMacro {
                                             comment: String) -> String {
             [
                 "static let \(name) =",
-                "LocalizedStringResource(\(key),",
+                "String(localized: \(key),",
                 "defaultValue: \(quotedValue),",
                 "table: \(table),",
                 "bundle: \(bundle))",
