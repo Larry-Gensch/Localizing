@@ -21,6 +21,8 @@ public struct LocalizedStringsMacro: MemberMacro {
         static let defaultBundle = ".main"
         static let defaultComment = ""
 
+        static let templateSeparator = ", "
+
         static let quote = #"""#
         static let quoteRegex = #/^"(.*)"$/#
         static let backtick = "`"
@@ -32,32 +34,22 @@ public struct LocalizedStringsMacro: MemberMacro {
                                             bundle: String,
                                             quotedValue: String,
                                             comment: String) -> String {
-            [
-                "static let \(name) =",
-                "String(localized: \(key),",
-                "defaultValue: \(quotedValue),",
-                "table: \(table),",
-                "bundle: \(bundle))",
+            var lines = [
+                "static let \(name) = String(localized: \(key)",
+                "defaultValue: \(quotedValue)",
             ]
-                .joined(separator: " ")
+            if table != C.defaultTable {
+                lines.append("table: \(table)")
+            }
+            if bundle != C.defaultBundle {
+                lines.append("bundle: \(bundle)")
+            }
+            if comment != addQuote(C.defaultComment) {
+                lines.append("comment: \(comment)")
+            }
+            return lines.joined(separator: C.templateSeparator) + ")"
         }
 
-        static func nsLocalizedStringTemplate(name: String,
-                                              key: String,
-                                              table: String,
-                                              bundle: String,
-                                              quotedValue: String,
-                                              comment: String) -> String {
-            return [
-                "static let \(name) =",
-                "NSLocalizedString(\(key),",
-                "tableName: \(table),",
-                "bundle: \(bundle),",
-                "value: \(quotedValue),",
-                "comment: \(comment))"
-            ]
-                .joined(separator: " ")
-        }
     }
 
     enum L {

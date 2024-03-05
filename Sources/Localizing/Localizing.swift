@@ -8,25 +8,27 @@
 import Foundation
 
 /// Use this macro to create localizable strings that are easily accessed within
-/// your code base.
+/// your code base and automatically updating into an existing string catalog
+/// when your code is built.
 ///
 /// ## Parameters
 ///
-/// - prefix: The prefix to use for generating localization keys. If omitted, all the key names
-///   will be generated without a prefix.
-/// - separator: A separator to use between the `prefix` value (if supplied) and the
-///   generated key
+/// - Parameter prefix: The prefix to use for generating localization keys. If omitted, all the key names will be generated without a prefix.
+/// - Parameter separator: A separator to use between the `prefix` value (if supplied) and thegenerated key.
+/// - Parameter table: The name of the Localization file to be used for accessing the localizations. If omitted,
+///   this defaults to `nil`, which means the base name of the filename will be `Localized`.
+/// - Parameter bundle: The bundle to be used for retrieving the localizations.
+/// - Parameter stringsEnum: The name of the inner enumeration that details the base keys and default values
+///   for the localization. If `nil`, defaults to the name `Strings`.
+///
+/// > Info: The `table` and `bundle` parameters will be omitted from the macro expansion if they
+/// are not specified in the macro call, or if their resulting values are the same as the default (effectively,
+/// `nil` for `table` and `.main` for `bundle`.
 ///
 /// > Warning: When this package is upgraded to 1.0.0, **the default separator will be changed from underscore (\_)
 /// to a dot (.)**. As such, for users of version 0.9.x, a diagnostic warning will be emitted whenever
 /// a prefix is supplied without a separator that suggests adding a separator parameter to the macro call.
 /// This diagnostic will be removed in versions 1.0.0 of this package.
-///
-/// - table: The name of the Localization file to be used for accessing the localizations. If omitted,
-///   this defaults to `nil`, which means the base name of the filename will be `Localized`.
-/// - bundle: The bundle to be used for retrieving the localizations.
-/// - stringsEnum: The name of the inner enumeration that details the base keys and default values
-///   for the localization. If `nil`, defaults to the name `Strings`.
 ///
 /// Simply prefix an `enum` with the `@LocalizedStrings()` macro (that may be
 /// called with optional parameters menioned above). Within this `enum`, create another  `enum`
@@ -73,9 +75,9 @@ import Foundation
 /// - term `keyName`: The name of the localization entry, optionally prefixed with the `prefix:`
 /// and `separator:` passed to the `@LocalizedStrings()` macro.
 /// - term `defaultValue`: The `rawValue` found in the `stringsEnum` enumeration
-/// - term `tableName`: Defaults to `nil`, but can be overridden by using the `table:` parameter
+/// - term `tableName`: Defaults to `nil` (and omitted), but can be overridden by using the `table:` parameter
 /// passed to the `@LocalizedStrings()` macro.
-/// - term `bundle`: Defaults to `.main`, but can be overridden by the `bundle:` parameter
+/// - term `bundle`: Defaults to `.main` (and omitted), but can be overridden by the `bundle:` parameter
 /// passed to the `@LocalizedStrings()` macro.
 ///
 /// ## An example
@@ -115,7 +117,7 @@ import Foundation
 public macro LocalizedStrings(prefix: String? = nil,
                               separator: String? = nil,
                               table: String? = nil,
-                              bundle: LocalizedStringResource.BundleDescription? = nil,
+                              bundle: Bundle? = nil,
                               stringsEnum: String? = nil) = #externalMacro(
     module: "LocalizingMacros",
     type: "LocalizedStringsMacro"

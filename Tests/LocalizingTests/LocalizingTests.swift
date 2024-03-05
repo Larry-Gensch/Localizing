@@ -42,9 +42,9 @@ final class LocalizingTests: XCTestCase {
                     case key2 = "Localized value 2"
                 }
 
-                static let key1 = String(localized: "about.key1", defaultValue: "Localized value 1", table: nil, bundle: .main)
+                static let key1 = String(localized: "about.key1", defaultValue: "Localized value 1")
 
-                static let key2 = String(localized: "about.key2", defaultValue: "Localized value 2", table: nil, bundle: .main)
+                static let key2 = String(localized: "about.key2", defaultValue: "Localized value 2")
             }
             """,
 
@@ -75,9 +75,9 @@ final class LocalizingTests: XCTestCase {
                     case key2 = "Localized value 2"
                 }
 
-                static let key1 = String(localized: "key1", defaultValue: "Localized value 1", table: "tbl", bundle: .main)
+                static let key1 = String(localized: "key1", defaultValue: "Localized value 1", table: "tbl")
 
-                static let key2 = String(localized: "key2", defaultValue: "Localized value 2", table: "tbl", bundle: .main)
+                static let key2 = String(localized: "key2", defaultValue: "Localized value 2", table: "tbl")
             }
             """,
 
@@ -110,11 +110,11 @@ final class LocalizingTests: XCTestCase {
                     case key3
                 }
 
-                static let key1 = String(localized: "key1", defaultValue: "Localized value 1", table: nil, bundle: .main)
+                static let key1 = String(localized: "key1", defaultValue: "Localized value 1")
 
-                static let key2 = String(localized: "key2", defaultValue: "Localized value 2", table: nil, bundle: .main)
+                static let key2 = String(localized: "key2", defaultValue: "Localized value 2")
 
-                static let key3 = String(localized: "key3", defaultValue: "key3", table: nil, bundle: .main)
+                static let key3 = String(localized: "key3", defaultValue: "key3")
             }
             """,
 
@@ -147,11 +147,11 @@ final class LocalizingTests: XCTestCase {
                     case key3
                 }
 
-                static let key1 = String(localized: "key1", defaultValue: "Localized value 1", table: nil, bundle: .main)
+                static let key1 = String(localized: "key1", defaultValue: "Localized value 1")
 
-                static let key2 = String(localized: "key2", defaultValue: "Localized value 2", table: nil, bundle: .main)
+                static let key2 = String(localized: "key2", defaultValue: "Localized value 2")
 
-                static let key3 = String(localized: "key3", defaultValue: "key3", table: nil, bundle: .main)
+                static let key3 = String(localized: "key3", defaultValue: "key3")
             }
             """,
 
@@ -185,11 +185,11 @@ final class LocalizingTests: XCTestCase {
                     case key3
                 }
 
-                static let key1 = String(localized: "Screens.MainScreen.key1", defaultValue: "Localized value 1", table: nil, bundle: .main)
+                static let key1 = String(localized: "Screens.MainScreen.key1", defaultValue: "Localized value 1")
 
-                static let key2 = String(localized: "Screens.MainScreen.key2", defaultValue: "Localized value 2", table: nil, bundle: .main)
+                static let key2 = String(localized: "Screens.MainScreen.key2", defaultValue: "Localized value 2")
 
-                static let key3 = String(localized: "Screens.MainScreen.key3", defaultValue: "key3", table: nil, bundle: .main)
+                static let key3 = String(localized: "Screens.MainScreen.key3", defaultValue: "key3")
             }
             """,
 
@@ -200,7 +200,7 @@ final class LocalizingTests: XCTestCase {
 #endif
     }
 
-    func testBundle() throws {
+    func testMainBundle() throws {
 #if canImport(LocalizingMacros)
         assertMacroExpansion(
             """
@@ -222,11 +222,55 @@ final class LocalizingTests: XCTestCase {
                     case key3
                 }
 
-                static let key1 = String(localized: "key1", defaultValue: "Localized value 1", table: nil, bundle: .main)
+                static let key1 = String(localized: "key1", defaultValue: "Localized value 1")
 
-                static let key2 = String(localized: "key2", defaultValue: "Localized value 2", table: nil, bundle: .main)
+                static let key2 = String(localized: "key2", defaultValue: "Localized value 2")
 
-                static let key3 = String(localized: "key3", defaultValue: "key3", table: nil, bundle: .main)
+                static let key3 = String(localized: "key3", defaultValue: "key3")
+            }
+            """,
+
+            macros: testMacros
+        )
+#else
+        throw XCTSkip("macros are only supported when running tests for the host platform")
+#endif
+    }
+
+
+    func testOtherBundle() throws {
+#if canImport(LocalizingMacros)
+
+        assertMacroExpansion(
+            """
+            @objc class SomeClass: NSObject { }
+            let bundle = Bundle(for: SomeClass.self)
+
+            @LocalizedStrings(bundle: bundle)
+            enum L {
+                private enum Strings: String {
+                    case key1 = "Localized value 1"
+                    case key2 = "Localized value 2"
+                    case key3
+                }
+            }
+            """,
+            expandedSource:
+            """
+            @objc class SomeClass: NSObject { }
+            let bundle = Bundle(for: SomeClass.self)
+            enum L {
+                private enum Strings: String {
+                    case key1 = "Localized value 1"
+                    case key2 = "Localized value 2"
+                    case key3
+                }
+
+                static let key1 = String(localized: "key1", defaultValue: "Localized value 1", bundle: bundle)
+
+                static let key2 = String(localized: "key2", defaultValue: "Localized value 2", bundle: bundle)
+
+                static let key3 = String(localized: "key3", defaultValue: "key3", bundle: bundle)
             }
             """,
 
@@ -259,11 +303,11 @@ final class LocalizingTests: XCTestCase {
                     case key3
                 }
 
-                static let `class` = String(localized: "class", defaultValue: "Localized value 1", table: nil, bundle: .main)
+                static let `class` = String(localized: "class", defaultValue: "Localized value 1")
 
-                static let `associatedtype` = String(localized: "associatedtype", defaultValue: "Localized value 2", table: nil, bundle: .main)
+                static let `associatedtype` = String(localized: "associatedtype", defaultValue: "Localized value 2")
 
-                static let key3 = String(localized: "key3", defaultValue: "key3", table: nil, bundle: .main)
+                static let key3 = String(localized: "key3", defaultValue: "key3")
             }
             """,
 
@@ -304,9 +348,9 @@ final class LocalizingTests: XCTestCase {
                     case key2 = "Localized value 2"
                 }
 
-                static let key1 = String(localized: "about_key1", defaultValue: "Localized value 1", table: "tbl", bundle: .main)
+                static let key1 = String(localized: "about_key1", defaultValue: "Localized value 1", table: "tbl")
 
-                static let key2 = String(localized: "about_key2", defaultValue: "Localized value 2", table: "tbl", bundle: .main)
+                static let key2 = String(localized: "about_key2", defaultValue: "Localized value 2", table: "tbl")
             }
             """,
             diagnostics: [diagSpec],
