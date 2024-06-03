@@ -88,19 +88,28 @@ import Foundation
 ///     private enum Strings: String {
 ///         case key1 = "localized value 1"
 ///         case key2 = "localized value 2"
+///         case key3 = "localized string value \"%@\""
 ///     }
 /// }
 /// ```
+///
 /// This generates the following:
+///
 /// ```swift
 /// enum L {
 ///     private enum Strings: String {
 ///         case key1 = "localized value 1"
 ///         case key2 = "localized value 2"
+///         case key3 = "localized string value \"%@\""
 ///     }
 ///     static let key1 = LocalizedStringResource("main_key1", defaultValue: "localized value 1", table: "tbl"", bundle: .main)
 ///
 ///     static let key1 = LocalizedStringResource("main_key2", defaultValue: "localized value 2", table: "tbl"", bundle: .main)
+///
+///     static func key3(_ arg1: String) -> String {
+///         let temp = String(localized: "key3", defaultValue: "localized string value \"%@\"")
+///         return String(format: temp, arg1)
+///     }
 /// }
 /// ```
 ///

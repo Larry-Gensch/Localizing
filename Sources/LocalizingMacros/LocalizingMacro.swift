@@ -27,15 +27,18 @@ public struct LocalizedStringsMacro: MemberMacro {
         static let quoteRegex = #/^"(.*)"$/#
         static let backtick = "`"
         static let backtickRegex = #/^`(\w+)`$/#
+        static let formatRegex = #/%(?:(?<argnum>\d+)\$)?(?<flags>[-+#0])?(?<width>\d+|\*)?(?:\.(?<precision>\d+|\*))?(?<length>[hljztL]|hh|ll)?(?<specifier>[diuoxXfFeEgGaAcspn@])/#
 
         static func localizedStringTemplate(name: String,
                                             key: String,
                                             table: String,
                                             bundle: String,
                                             quotedValue: String,
-                                            comment: String) -> String {
+                                            comment: String,
+                                            stripStatic: Bool = false) -> String {
+            let `static` = stripStatic ? "" : "static "
             var lines = [
-                "static let \(name) = String(localized: \(key)",
+                "\(`static`)let \(name) = String(localized: \(key)",
                 "defaultValue: \(quotedValue)",
             ]
             if table != C.defaultTable {
@@ -50,6 +53,136 @@ public struct LocalizedStringsMacro: MemberMacro {
             return lines.joined(separator: C.templateSeparator) + ")"
         }
 
+        static func localizedFunctionTemplate(name: String,
+                                              args: [String],
+                                              key: String,
+                                              table: String,
+                                              bundle: String,
+                                              quotedValue: String,
+                                              comment: String) -> String {
+            let argsString = args.joined(separator: ", ")
+            let formatArgs = args.enumerated()
+                .map { (index, _) in
+                    "arg\(index+1)"
+                }
+                .joined(separator: ", ")
+
+            let lines = [
+                "static func \(name)(\(argsString)) -> String {",
+                "    " + localizedStringTemplate(name: "temp",
+                                                 key: key,
+                                                 table: table,
+                                                 bundle: bundle,
+                                                 quotedValue: quotedValue,
+                                                 comment: comment,
+                                                 stripStatic: true),
+                "    return String(format: temp, \(formatArgs))",
+                "}"
+            ]
+            return lines.joined(separator: "\n")
+
+        }
+    }
+
+    static func parseArgs(unquotedValue: String) throws -> [String] {
+        let matches = unquotedValue.matches(of: C.formatRegex)
+        guard !matches.isEmpty else { return [] }
+
+        struct FormatResult {
+            var index: Int
+            var length: String?
+            var specifier: String
+        }
+
+        var formatResult = [FormatResult]()
+
+        var isUsingIndex: Bool?
+
+        try matches.enumerated().forEach { (index, match) in
+            let argnum: Int? = if let value = match.argnum {
+                Int(value)
+            }
+            else {
+                nil
+            }
+            if let isUsingIndex {
+                if argnum != nil {
+                    throw LocalizedStringsError.stringFormatMissingIndex
+                }
+            }
+            else {
+                isUsingIndex = argnum != nil
+            }
+
+            let length: String? = if let value = match.output.length {
+                String(value)
+            }
+            else {
+                nil
+            }
+            let specifier: String = String(match.output.specifier)
+
+            let result = FormatResult(index: argnum ?? index + 1,
+                                      length: length,
+                                      specifier: specifier)
+            formatResult.append(result)
+        }
+
+        formatResult.sort {
+            $0.index < $1.index
+        }
+
+        var args = [String]()
+
+        var lastIndex: Int?
+
+        try formatResult.forEach { result in
+            if let index = lastIndex {
+                if result.index == index {
+                    return
+                }
+                else if result.index == index + 1 {
+                    lastIndex = result.index
+                }
+                else {
+                    throw LocalizedStringsError.stringFormatIndexOutOfRange
+                }
+            }
+            else if result.index != 1 {
+                throw LocalizedStringsError.stringFormatIndexOutOfRange
+            }
+            else {
+                lastIndex = result.index
+            }
+            var typeName: String
+
+            switch (result.length, result.specifier) {
+            case (nil, "c"):
+                typeName = "Character"
+            case ("h", "i"), ("h", "x"), ("h", "o"),
+                (nil, "i"), (nil, "x"), (nil, "o"):
+                typeName = "Int16"
+            case ("h", "u"):
+                typeName = "UInt16"
+            case ("l", "i"), ("l", "x"), ("l", "o"), ("l", "d"),
+                ("ll", "i"), ("ll", "x"), ("ll", "o"), ("ll", "d"):
+                typeName = "Int"
+            case ("l", "u"), ("ll", "u"):
+                typeName = "UInt"
+            case (nil, "f"), (nil, "e"), (nil, "g"), (nil, "a"):
+                typeName = "Double"
+            case (nil, "@"):
+                typeName = "String"
+            default:
+                let length = result.length ?? ""
+                let specifier = length + result.specifier
+                throw LocalizedStringsError.unknownStringFormatSpecifier(specifier)
+            }
+
+            args.append("_ arg\(result.index): \(typeName)")
+        }
+
+        return args
     }
 
     enum L {
@@ -169,10 +302,10 @@ public struct LocalizedStringsMacro: MemberMacro {
             throw LocalizedStringsError.noStringsEnumFound
         }
 
-        let resources = stringsDecl.memberBlock
+        let resources = try stringsDecl.memberBlock
             .members
             .compactMap {
-                $0.decl.as(EnumCaseDeclSyntax.self)?
+                try $0.decl.as(EnumCaseDeclSyntax.self)?
                     .elements
                     .map {
                         let safeName = $0.name.text
@@ -186,12 +319,24 @@ public struct LocalizedStringsMacro: MemberMacro {
                         }
                         let keyQuoted = addQuote(key)
                         let value = $0.rawValue?.value.description ?? addQuote(name)
-                        return C.localizedStringTemplate(name: safeName,
-                                                         key: keyQuoted,
-                                                         table: table,
-                                                         bundle: bundle,
-                                                         quotedValue: value,
-                                                         comment: comment)
+                        let args = try parseArgs(unquotedValue: removeQuotes(value) ?? "")
+                        if args.isEmpty {
+                            return C.localizedStringTemplate(name: safeName,
+                                                             key: keyQuoted,
+                                                             table: table,
+                                                             bundle: bundle,
+                                                             quotedValue: value,
+                                                             comment: comment)
+                        }
+                        else {
+                            return C.localizedFunctionTemplate(name: safeName,
+                                                               args: args,
+                                                               key: keyQuoted,
+                                                               table: table,
+                                                               bundle: bundle,
+                                                               quotedValue: value,
+                                                               comment: comment)
+                        }
                     }
             }
             .flatMap { $0 }
@@ -200,11 +345,27 @@ public struct LocalizedStringsMacro: MemberMacro {
         return resources
     }
 
-    public enum LocalizedStringsError: String, Error {
-        case parserError = "Parser error"
-        case appliesOnlyToEnumerations = "@LocalizedStrings only applies only to enumerations"
-        case noStringsEnumFound = "@LocalizedStrings requires your enum contain an embedded Strings enum"
-        case simpleParameter = "@LocalizedString requires its parameters to be a simple String value"
+    public enum LocalizedStringsError: LocalizedError {
+        case parserError
+        case appliesOnlyToEnumerations
+        case noStringsEnumFound
+        case simpleParameter
+        case stringFormatMissingIndex
+        case stringFormatIndexOutOfRange
+        case unknownStringFormatSpecifier(String)
+
+        public var errorDescription: String? {
+            switch self {
+            case .parserError:  return "Parser error"
+            case .appliesOnlyToEnumerations:  return "@LocalizedStrings only applies only to enumerations"
+            case .noStringsEnumFound:  return "@LocalizedStrings requires your enum contain an embedded Strings enum"
+            case .simpleParameter:  return "@LocalizedString requires its parameters to be a simple String value"
+            case .stringFormatMissingIndex:  return "String format parameters must either all use or none use index paramters"
+            case .stringFormatIndexOutOfRange:  return "String format parameter index duplicated, missing, or out of range"
+            case .unknownStringFormatSpecifier(let s):  return "Unknown string format specifier: \(s)"
+
+            }
+        }
     }
 }
 

@@ -15,5 +15,6 @@ enum L {
         case key1 = "Localized value 1"
         case key2 = "Localized value 2"
         case `import` = "Importing important stuff"
+        case key4 = "Something with %@ and %lld"
     }
 }

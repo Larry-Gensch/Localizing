@@ -31,6 +31,7 @@ final class LocalizingTests: XCTestCase {
                 private enum Strings: String {
                     case key1 = "Localized value 1"
                     case key2 = "Localized value 2"
+                    case key3 = "String arg: %@"
                 }
             }
             """,
@@ -40,11 +41,17 @@ final class LocalizingTests: XCTestCase {
                 private enum Strings: String {
                     case key1 = "Localized value 1"
                     case key2 = "Localized value 2"
+                    case key3 = "String arg: %@"
                 }
 
                 static let key1 = String(localized: "about.key1", defaultValue: "Localized value 1")
 
                 static let key2 = String(localized: "about.key2", defaultValue: "Localized value 2")
+
+                static func key3(_ arg1: String) -> String {
+                    let temp = String(localized: "about.key3", defaultValue: "String arg: %@")
+                    return String(format: temp, arg1)
+                }
             }
             """,
 

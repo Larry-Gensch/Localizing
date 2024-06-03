@@ -77,6 +77,15 @@ passed to the `@LocalizedStrings()` macro.
 - term `bundle`: Defaults to `.main` (and omitted), but can be overridden by the `bundle:` parameter
 passed to the `@LocalizedStrings()` macro.
 
+For default values that contain format-style strings (e.g., "%@", or "%lld""), a function is
+created so that values can be supplied. The function is generated using the correct parameter
+types (e.g., "String" for "%@" or "Int" for "%lld") for each argument. Format strings using
+positional parameter indices (e.g., "%1$@" or "%2$lld" will ensure that the parameters are
+called with the correct indices as well). If a format string cannot be parsed properly to find
+the correct parameter type, or is not consistently indexed, or with missing parameter indices,
+an error is generated. If you think any generated error is incorrect, please file an issue here
+on GitHub.
+
 ## An example
 
 ```swift
@@ -85,6 +94,7 @@ enum L {
     private enum Strings: String {
         case key1 = "localized value 1"
         case key2 = "localized value 2"
+        case key3 = "localized string value \"%@\""
     }
 }
 ```
@@ -94,10 +104,17 @@ enum L {
     private enum Strings: String {
         case key1 = "localized value 1"
         case key2 = "localized value 2"
+        case key3 = "localized string value \"%@\""
+
     }
     static let key1 = String(localized: "key1", defaultValue: "Localized value 1", table: nil, bundle: .main)
 
     static let key2 = String(localized: "key2", defaultValue: "Localized value 2", table: nil, bundle: .main)
+    
+    static func key3(_ arg1: String) -> String {
+        let temp = String(localized: "key3", defaultValue: "localized string value \"%@\"")
+        return String(format: temp, arg1)
+    }
 }
 ```
 
