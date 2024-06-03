@@ -16,5 +16,7 @@ enum L {
         case key2 = "Localized value 2"
         case `import` = "Importing important stuff"
         case key4 = "Something with %@ and %lld"
+        case accessibleFormat = "Card named %1$@ with color: %2$@"
+        case nameWithColor = "%1$@ with color %2$@"
     }
 }

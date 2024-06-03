@@ -105,8 +105,8 @@ public struct LocalizedStringsMacro: MemberMacro {
             else {
                 nil
             }
-            if let isUsingIndex {
-                if argnum != nil {
+            if let usingIndex = isUsingIndex {
+                if usingIndex == (argnum == nil) {
                     throw LocalizedStringsError.stringFormatMissingIndex
                 }
             }
