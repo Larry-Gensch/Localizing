@@ -11,7 +11,7 @@ when your code is built.
 - prefix: The prefix to use for generating localization keys. If omitted, all the key names
   will be generated without a prefix.
 - separator: A separator to use between the `prefix` value (if supplied) and the
-  generated key (see warning))
+  generated key (see warnings)).
 - table: The name of the Localization file to be used for accessing the localizations. If omitted,
   this defaults to `nil`, which means the base name of the filename will be `Localized`.
 - bundle: The bundle to be used for retrieving the localizations.
@@ -26,6 +26,9 @@ are not specified in the macro call, or if their resulting values are the same a
   to a dot (.)**. As such, for users of version 0.9.x, a diagnostic warning will be emitted whenever
   a prefix is supplied without a separator that suggests adding a separator parameter to the macro call.
   This diagnostic will be removed in versions 1.0.0 of this package.
+  
+  In addition, the separator must be specified as a quoted string. Do not reference a variable when
+  using the `separator:` parameter with the `@LocalizedStrings` macro.
 
 Simply prefix an `enum` with the `@LocalizedStrings()` macro (that may be
 called with optional parameters menioned above). Within this `enum`, create another  `enum`
@@ -49,9 +52,9 @@ the `separator:`) to generate the localization key.
 
 The `separator:` parameter to the `@LocalizedStrings` macro is used to provide a separator
 that will be inserted between the `prefix:` value and the generated localization key.
-So, if the prefix is `"Screens.main"`, a good separator to use might be the dot (`.`).
-By default, for versions 0.9.x, the separator is an underscore (`_`).
-This will change in 1.0.0 to dot (`.`).
+So, if the prefix is `"Screens.main"`, a good separator to use might be the dot (`"."`).
+By default, for versions 0.9.x, the separator is an underscore (`"_"`).
+This will change in 1.0.0 to dot (`"."`).
 
 The `stringsEnum` specifies the name of an `enum` with a `RawValue` of type `String`. The cases
 within this enumeration are used to specify the base localization key ((`case` name) and the `rawValue`
@@ -62,7 +65,7 @@ to. These constants will map to constants of type `String(localized:)` with the 
 (with newlines in the example output added for readability)
 
 ```
-static let key1 = String(localized: "key1",
+static let key1 = String(localized: "prefix.key1",
                          defaultValue: "Localized value 1",
                          table: nil,
                          bundle: .main)
@@ -78,13 +81,13 @@ passed to the `@LocalizedStrings()` macro.
 passed to the `@LocalizedStrings()` macro.
 
 For default values that contain format-style strings (e.g., "%@", or "%lld""), a function is
-created so that values can be supplied. The function is generated using the correct parameter
-types (e.g., "String" for "%@" or "Int" for "%lld") for each argument. Format strings using
-positional parameter indices (e.g., "%1$@" or "%2$lld" will ensure that the parameters are
-called with the correct indices as well). If a format string cannot be parsed properly to find
-the correct parameter type, or is not consistently indexed, or with missing parameter indices,
-an error is generated. If you think any generated error is incorrect, please file an issue here
-on GitHub.
+created instead of a simple property so that values can be supplied. The function is generated
+using the correct parameter types (e.g., "String" for "%@" or "Int" for "%lld") for each argument. 
+Format strings using positional parameter indices (e.g., "%1$@" or "%2$lld" will ensure that the
+parameters are called with the correct indices as well). If a format string cannot be parsed properly
+to find the correct parameter type, or is not consistently indexed, or with missing parameter indices,
+an error is generated. If you think any generated error is incorrect, please file an issue at the
+GitHub repository.
 
 ## An example
 
@@ -107,12 +110,12 @@ enum L {
         case key3 = "localized string value \"%@\""
 
     }
-    static let key1 = String(localized: "key1", defaultValue: "Localized value 1", table: nil, bundle: .main)
+    static let key1 = String(localized: "main.key1", defaultValue: "Localized value 1", table: nil, bundle: .main)
 
-    static let key2 = String(localized: "key2", defaultValue: "Localized value 2", table: nil, bundle: .main)
+    static let key2 = String(localized: "main.key2", defaultValue: "Localized value 2", table: nil, bundle: .main)
     
     static func key3(_ arg1: String) -> String {
-        let temp = String(localized: "key3", defaultValue: "localized string value \"%@\"")
+        let temp = String(localized: "main.key3", defaultValue: "localized string value \"%@\"", table: nil, bundle: .main)
         return String(format: temp, arg1)
     }
 }

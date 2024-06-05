@@ -9,7 +9,7 @@
 import Localizing
 import Foundation
 
-@LocalizedStrings(bundle: .main)
+@LocalizedStrings(separator: ".", bundle: .main)
 enum L {
     private enum Strings: String {
         case key1 = "Localized value 1"

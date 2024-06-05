@@ -84,7 +84,7 @@ public struct LocalizedStringsMacro: MemberMacro {
         }
     }
 
-    static func parseArgs(unquotedValue: String) throws -> [String] {
+    static func parseFormatSpecifiers(unquotedValue: String) throws -> [String] {
         let matches = unquotedValue.matches(of: C.formatRegex)
         guard !matches.isEmpty else { return [] }
 
@@ -205,7 +205,13 @@ public struct LocalizedStringsMacro: MemberMacro {
         var name: String { rawValue }
     }
 
-    private static func removeQuotes(_ string: String?) -> String? {
+    private static func removeQuotes(_ string: String) -> String {
+        string
+            .replacing(C.quoteRegex) { match in
+                match.output.1
+            }
+    }
+    private static func removeQuotesFromOptional(_ string: String?) -> String? {
         string?
             .replacing(C.quoteRegex) { match in
                 match.output.1
@@ -286,11 +292,22 @@ public struct LocalizedStringsMacro: MemberMacro {
                                         message: diagnostic))
         }
         // Set up variable replacements and their defaults
-        let prefix = removeQuotes(variables[.prefix])
+        let prefix = removeQuotesFromOptional(variables[.prefix])
         let table = variables[.table] ?? C.defaultTable
         let bundle = variables[.bundle] ?? C.defaultBundle
-        let separator = removeQuotes(variables[.separator]) ?? C.defaultSeparator
-        let stringsEnum = removeQuotes(variables[.stringsEnum]) ?? C.defaultEnum
+        let separator: String
+        if let vSep = variables[.separator] {
+            if hasQuote(vSep) {
+                separator = removeQuotes(vSep)
+            }
+            else {
+                throw LocalizedStringsError.invalidSeparator
+            }
+        }
+        else {
+            separator = C.defaultSeparator
+        }
+        let stringsEnum = removeQuotesFromOptional(variables[.stringsEnum]) ?? C.defaultEnum
         let comment = addQuote("")
 
         guard let stringsDecl = enumDecl
@@ -319,7 +336,7 @@ public struct LocalizedStringsMacro: MemberMacro {
                         }
                         let keyQuoted = addQuote(key)
                         let value = $0.rawValue?.value.description ?? addQuote(name)
-                        let args = try parseArgs(unquotedValue: removeQuotes(value) ?? "")
+                        let args = try parseFormatSpecifiers(unquotedValue: removeQuotesFromOptional(value) ?? "")
                         if args.isEmpty {
                             return C.localizedStringTemplate(name: safeName,
                                                              key: keyQuoted,
@@ -345,11 +362,18 @@ public struct LocalizedStringsMacro: MemberMacro {
         return resources
     }
 
+    private static let quoteRegex = #/\"/#
+
+    private static func hasQuote(_ string: String) -> Bool {
+        string.contains(quoteRegex)
+    }
+
     public enum LocalizedStringsError: LocalizedError {
         case parserError
         case appliesOnlyToEnumerations
         case noStringsEnumFound
         case simpleParameter
+        case invalidSeparator
         case stringFormatMissingIndex
         case stringFormatIndexOutOfRange
         case unknownStringFormatSpecifier(String)
@@ -360,6 +384,7 @@ public struct LocalizedStringsMacro: MemberMacro {
             case .appliesOnlyToEnumerations:  return "@LocalizedStrings only applies only to enumerations"
             case .noStringsEnumFound:  return "@LocalizedStrings requires your enum contain an embedded Strings enum"
             case .simpleParameter:  return "@LocalizedString requires its parameters to be a simple String value"
+            case .invalidSeparator: return "@LocalizedString requires separator parameter to be a quoted string"
             case .stringFormatMissingIndex:  return "String format parameters must either all use or none use index paramters"
             case .stringFormatIndexOutOfRange:  return "String format parameter index duplicated, missing, or out of range"
             case .unknownStringFormatSpecifier(let s):  return "Unknown string format specifier: \(s)"

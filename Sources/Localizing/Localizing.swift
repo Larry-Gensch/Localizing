@@ -14,7 +14,7 @@ import Foundation
 /// ## Parameters
 ///
 /// - Parameter prefix: The prefix to use for generating localization keys. If omitted, all the key names will be generated without a prefix.
-/// - Parameter separator: A separator to use between the `prefix` value (if supplied) and thegenerated key.
+/// - Parameter separator: A separator to use between the `prefix` value (if supplied) and the generated key.
 /// - Parameter table: The name of the Localization file to be used for accessing the localizations. If omitted,
 ///   this defaults to `nil`, which means the base name of the filename will be `Localized`.
 /// - Parameter bundle: The bundle to be used for retrieving the localizations.
@@ -29,6 +29,9 @@ import Foundation
 /// to a dot (.)**. As such, for users of version 0.9.x, a diagnostic warning will be emitted whenever
 /// a prefix is supplied without a separator that suggests adding a separator parameter to the macro call.
 /// This diagnostic will be removed in versions 1.0.0 of this package.
+///
+/// > Warning: In addition, the separator must be specified as a quoted string. Do not reference a variable when
+/// using the `separator:` parameter with the `@LocalizedStrings` macro.
 ///
 /// Simply prefix an `enum` with the `@LocalizedStrings()` macro (that may be
 /// called with optional parameters menioned above). Within this `enum`, create another  `enum`
@@ -52,9 +55,9 @@ import Foundation
 ///
 /// The `separator:` parameter to the `@LocalizedStrings` macro is used to provide a separator
 /// that will be inserted between the `prefix:` value and the generated localization key.
-/// So, if the prefix is `"Screens.main"`, a good separator to use might be the dot (`.`).
-/// By default, for versions 0.9.x, the separator is an underscore (`_`).
-/// This will change in 1.0.0 to dot (`.`).
+/// So, if the prefix is `"Screens.main"`, a good separator to use might be the dot (`"."`).
+/// By default, for versions 0.9.x, the separator is an underscore (`"_"`).
+/// This will change in 1.0.0 to dot (`"."`).
 ///
 /// The `stringsEnum` specifies the name of an `enum` with a `RawValue` of type `String`. The cases
 /// within this enumeration are used to specify the base localization key ((`case` name) and the `rawValue`
@@ -65,7 +68,7 @@ import Foundation
 /// (with newlines in the example output added for readability)
 ///
 /// ```
-/// static let key1 = String(localized: "key1",
+/// static let key1 = String(localized: "prefix.key1",
 ///                          defaultValue: "Localized value 1",
 ///                          table: nil,
 ///                          bundle: .main)
@@ -107,7 +110,7 @@ import Foundation
 ///     static let key1 = LocalizedStringResource("main_key2", defaultValue: "localized value 2", table: "tbl"", bundle: .main)
 ///
 ///     static func key3(_ arg1: String) -> String {
-///         let temp = String(localized: "key3", defaultValue: "localized string value \"%@\"")
+///         let temp = String(localized: "main_key3", defaultValue: "localized string value \"%@\"")
 ///         return String(format: temp, arg1)
 ///     }
 /// }
