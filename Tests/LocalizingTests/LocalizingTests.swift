@@ -22,8 +22,94 @@ let testMacros: [String: Macro.Type] = [
 #endif
 
 final class LocalizingTests: XCTestCase {
-    func testMacroPrefix() throws {
+    func testComments() throws {
         #if canImport(LocalizingMacros)
+        let multiLineComment = String(String(repeating: "\"", count: 3))
+        assertMacroExpansion(
+            """
+            @LocalizedStrings(prefix: "about", separator: ".")
+            enum L {
+                private enum Strings: String {
+                    // line 1 for key1
+                    // line 2 for key1
+                    case key1 = "Localized value 1"
+                    // line 1 for key2
+                    case key2 = "Localized value 2"
+                    /* one line C-comment*/
+                    case key3 = "Localized value 3"
+                    /*
+                     multiline coment 1 for value 4
+                     multiline coment 2 for value 4
+                    */
+                    case key4 = "Localized value 4"
+                    /*
+                     single multiline comment 1 for value 5
+                    */
+                    case key5 = "String arg 5: %@"
+                    case key6 = "String arg 6: %@"
+                }
+            }
+            """,
+            expandedSource:
+            """
+            enum L {
+                private enum Strings: String {
+                    // mutiple line comment 1 for key1
+                    // mutiple line comment 2 for key1
+                    case key1 = "Localized value 1"
+                    // single line comment 1 for key2
+                    case key2 = "Localized value 2"
+                    /* single line C-comment */
+                    case key3 = "Localized value 3"
+                    /*
+                     multiple line coment 1 for value 4
+                     multiple line comentfor value 4
+                    */
+                    case key4 = "Localized value 4"
+                    /*
+                     indented C-comment line 1 for value 5
+                    */
+                    case key5 = "String arg 5: %@"
+                    case key6 = "String arg 6: %@"
+                }
+            
+                static let key1 = String(localized: "about.key1", defaultValue: "Localized value 1", comment: \(multiLineComment)
+                line 1 for key1
+                line 2 for key1
+                \(multiLineComment))
+
+                static let key2 = String(localized: "about.key2", defaultValue: "Localized value 2", comment: "line 1 for key2")
+
+                static let key3 = String(localized: "about.key3", defaultValue: "Localized value 3", comment: "one line C-comment")
+
+                static let key4 = String(localized: "about.key4", defaultValue: "Localized value 4", comment: \(multiLineComment)
+                multiline coment 1 for value 4
+                multiline coment 2 for value 4
+                \(multiLineComment))
+
+                static func key5(_ arg1: String) -> String {
+                    let temp = String(localized: "about.key5", defaultValue: "String arg 5: %@", comment: \(multiLineComment)
+                single multiline comment 1 for value 5
+                \(multiLineComment))
+                    return String(format: temp, arg1)
+                }
+
+                static func key6(_ arg1: String) -> String {
+                    let temp = String(localized: "about.key6", defaultValue: "String arg 6: %@")
+                    return String(format: temp, arg1)
+                }
+            }
+            """,
+
+            macros: testMacros
+        )
+        #else
+        throw XCTSkip("macros are only supported when running tests for the host platform")
+        #endif
+    }
+
+    func testMacroPrefix() throws {
+#if canImport(LocalizingMacros)
         assertMacroExpansion(
             """
             @LocalizedStrings(prefix: "about", separator: ".")
@@ -57,9 +143,9 @@ final class LocalizingTests: XCTestCase {
 
             macros: testMacros
         )
-        #else
+#else
         throw XCTSkip("macros are only supported when running tests for the host platform")
-        #endif
+#endif
     }
 
     func testMacroTable() throws {

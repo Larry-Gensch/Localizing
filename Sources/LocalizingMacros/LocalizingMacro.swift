@@ -19,11 +19,12 @@ public struct LocalizedStringsMacro: MemberMacro {
         static let defaultSeparator = "_"
         static let defaultTable = "nil"
         static let defaultBundle = ".main"
-        static let defaultComment = ""
+        static let defaultComment = "nil"
 
         static let templateSeparator = ", "
 
         static let quote = #"""#
+        static let multilineQuote = #"""""#
         static let quoteRegex = #/^"(.*)"$/#
         static let backtick = "`"
         static let backtickRegex = #/^`(\w+)`$/#
@@ -47,7 +48,7 @@ public struct LocalizedStringsMacro: MemberMacro {
             if bundle != C.defaultBundle {
                 lines.append("bundle: \(bundle)")
             }
-            if comment != addQuote(C.defaultComment) {
+            if comment != C.defaultComment {
                 lines.append("comment: \(comment)")
             }
             return lines.joined(separator: C.templateSeparator) + ")"
@@ -229,6 +230,10 @@ public struct LocalizedStringsMacro: MemberMacro {
         C.quote + string + C.quote
     }
 
+    private static func addMultiQuote(_ string: String) -> String {
+        C.multilineQuote + "\n" + string + "\n" + C.multilineQuote
+    }
+
     private static func addBacktick(_ string: String) -> String {
         C.backtick + string + C.backtick
     }
@@ -308,7 +313,6 @@ public struct LocalizedStringsMacro: MemberMacro {
             separator = C.defaultSeparator
         }
         let stringsEnum = removeQuotesFromOptional(variables[.stringsEnum]) ?? C.defaultEnum
-        let comment = addQuote("")
 
         guard let stringsDecl = enumDecl
             .memberBlock
@@ -322,7 +326,39 @@ public struct LocalizedStringsMacro: MemberMacro {
         let resources = try stringsDecl.memberBlock
             .members
             .compactMap {
-                try $0.decl.as(EnumCaseDeclSyntax.self)?
+                let comments: [String] = $0.leadingTrivia.pieces
+                    .compactMap { piece in
+                        if case .lineComment(let string) = piece {
+                            return string
+                        }
+                        else if case .blockComment(let string) = piece {
+                            return stripLeadingWhitespace(from: string)
+                        }
+                        else {
+                            return nil
+                        }
+                    }
+
+                let comment = if comments.isEmpty {
+                    C.defaultComment
+                }
+                else if comments.count > 1 || comments.first?.contains("\n") == true {
+                    addMultiQuote(
+                        stripCommentIndicators(
+                            from: comments.joined(separator: "\n")
+                        )
+                    )
+                }
+                else {
+                    addQuote(
+                        stripCommentIndicators(
+                            from: comments.joined(separator: "\n")
+                        )
+                    )
+
+                }
+
+                return try $0.decl.as(EnumCaseDeclSyntax.self)?
                     .elements
                     .map {
                         let safeName = $0.name.text
@@ -346,20 +382,46 @@ public struct LocalizedStringsMacro: MemberMacro {
                                                              comment: comment)
                         }
                         else {
-                            return C.localizedFunctionTemplate(name: safeName,
-                                                               args: args,
-                                                               key: keyQuoted,
-                                                               table: table,
-                                                               bundle: bundle,
-                                                               quotedValue: value,
-                                                               comment: comment)
+                            return C.localizedFunctionTemplate(name: safeName, args: args, key: keyQuoted, table: table, bundle: bundle, quotedValue: value, comment: comment)
                         }
                     }
             }
             .flatMap { $0 }
-            .map { DeclSyntax(stringLiteral: $0) }
+            .map {
+                DeclSyntax(stringLiteral: $0)
+            }
 
         return resources
+    }
+
+    static let foo = NSLocalizedString("Foo", value: """
+        this is a comment line 1
+        this is a comment line 2
+        """, comment: "")
+    static let lineComment = #///\s/#
+    static let cComment = #//\*\s*(.*?)\s*\*//#
+        .dotMatchesNewlines()
+    static let spacePrefixRegex = #/^\s+/#
+    static let multilineComment = #/"""\s+(.*?)\s*"""/#
+        .dotMatchesNewlines()
+
+    static private func stripLeadingWhitespace(from string: String) -> String {
+        string
+            .split(separator: "\n", omittingEmptySubsequences: false)
+            .map {
+                $0.replacing(Self.spacePrefixRegex, with: "")
+            }
+            .joined(separator: "\n")
+    }
+
+    private static func stripCommentIndicators(from string: String) -> String {
+        let p1 = string.replacing(Self.lineComment, with: "")
+        let p2 = p1.replacing(Self.cComment) {
+            $0.1
+        }
+        return p2.replacing(Self.multilineComment) {
+            stripLeadingWhitespace(from: String($0.1))
+        }
     }
 
     private static let quoteRegex = #/\"/#
