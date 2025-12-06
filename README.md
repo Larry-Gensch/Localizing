@@ -50,18 +50,19 @@ static let copyright = String(
     defaultValue: "Copyright©️ 2025, Some Big Shot Corporation"
 )
 
-static func version(\_ arg1: String) -> String {
+static func version(_ arg1: String, _ arg2: String) -> String {
     let temp = String(
         localized: "screens.about.version",
         defaultValue: "Version %1$@.%2$@",
         comment: """
-    %1$@: Major/Minor version number in format #.#
-    %2$@: Build number
-    """
+%1$@: Major/Minor version number in format #.#
+%2$@: Build number
+"""
     )
-    return String(format: temp, arg1)
+    return String(format: temp, arg1, arg2)
 }
-}
+        }
+```
 
 Now, to reference any of these symbols, you simply type `L.` and the Xcode editor
 can help locate the proper symbol. So, if you type `L.c`, Xcode can offer the `opyright`
@@ -145,7 +146,7 @@ should precede the `case` key for the localization. Multiline C-style comments (
 mulltiple line comments (`// ...`) are supported, and generate comments with newlines inserted between
 the lines.
 
-Here is a sample of the generated output:
+Here is a sample of the generated output that is added to the top-level `enum`:
 
 ```
 static let key1 = String(
@@ -177,104 +178,105 @@ to find the correct parameter type, or is not consistently indexed, or with miss
 a compilation error is generated at the function call site. If you think any generated code or error
 diagnostic is incorrect, please file an issue at the GitHub repository.
 
-## An example
+## An more complex example
 
 ```swift
-    @LocalizedStrings(prefix: "about", separator: ".")
-    enum L {
-        private enum Strings: String {
-            // line 1 for key1
-            // line 2 for key1
-            case key1 = "Localized value 1"
-            // single line comment for key2
-            case key2 = "Localized value 2"
-            /* one line C-comment */
-            case key3 = "Localized value 3"
-            /*
-             multiline coment 1 for value 4
-             multiline coment 2 for value 4
-            */
-            case key4 = "Localized value 4"
-            /*
-             single multiline comment 1 for value 5
-            */
-            case key5 = "String arg 5: %@"
-            case key6 = "String arg 6: %@"
-        }
+@LocalizedStrings(prefix: "about", separator: ".")
+enum L {
+    private enum Strings: String {
+        // line 1 for key1
+        // line 2 for key1
+        case key1 = "Localized value 1"
+        // single line comment for key2
+        case key2 = "Localized value 2"
+        /* one line C-comment */
+        case key3 = "Localized value 3"
+        /*
+         multiline coment 1 for value 4
+         multiline coment 2 for value 4
+        */
+        case key4 = "Localized value 4"
+        /*
+         single multiline comment 1 for value 5
+        */
+        case key5 = "String arg 5: %@"
+        case key6 = "String arg 6: %@"
     }
+}
 ```
 This generates the following:
 ```swift
-        enum L {
-        private enum Strings: String {
-            // line 1 for key1
-            // line 2 for key1
-            case key1 = "Localized value 1"
-            // single line comment for key2
-            case key2 = "Localized value 2"
-            /* one line C-comment */
-            case key3 = "Localized value 3"
-            /*
-             multiline coment 1 for value 4
-             multiline coment 2 for value 4
-            */
-            case key4 = "Localized value 4"
-            /*
-             single multiline comment 1 for value 5
-            */
-            case key5 = "String arg 5: %@"
-            case key6 = "String arg 6: %@"
-        }
+@LocalizedStrings(prefix: "about", separator: ".")
+enum L {
+private enum Strings: String {
+    // line 1 for key1
+    // line 2 for key1
+    case key1 = "Localized value 1"
+    // single line comment for key2
+    case key2 = "Localized value 2"
+    /* one line C-comment */
+    case key3 = "Localized value 3"
+    /*
+     multiline coment 1 for value 4
+     multiline coment 2 for value 4
+    */
+    case key4 = "Localized value 4"
+    /*
+     single multiline comment 1 for value 5
+    */
+    case key5 = "String arg 5: %@"
+    case key6 = "String arg 6: %@"
+}
 
-        static let key1 = String(
-            localized: "about.key1",
-            defaultValue: "Localized value 1",
-            comment: """
-        line 1 for key1
-        line 2 for key1
-        """
-        )
+static let key1 = String(
+    localized: "about.key1",
+    defaultValue: "Localized value 1",
+    comment: """
+line 1 for key1
+line 2 for key1
+"""
+)
 
-        static let key2 = String(
-            localized: "about.key2",
-            defaultValue: "Localized value 2",
-            comment: "single line comment for key2"
-        )
+static let key2 = String(
+    localized: "about.key2",
+    defaultValue: "Localized value 2",
+    comment: "single line comment for key2"
+)
 
-        static let key3 = String(
-            localized: "about.key3",
-            defaultValue: "Localized value 3",
-            comment: "one line C-comment"
-        )
+static let key3 = String(
+    localized: "about.key3",
+    defaultValue: "Localized value 3",
+    comment: "one line C-comment"
+)
 
-        static let key4 = String(
-            localized: "about.key4",
-            defaultValue: "Localized value 4",
-            comment: """
-        multiline coment 1 for value 4
-        multiline coment 2 for value 4
-        """
-        )
+static let key4 = String(
+    localized: "about.key4",
+    defaultValue: "Localized value 4",
+    comment: """
+multiline coment 1 for value 4
+multiline coment 2 for value 4
+"""
+)
 
-        static func key5(_ arg1: String) -> String {
-            let temp = String(
-                localized: "about.key5",
-                defaultValue: "String arg 5: %@",
-                comment: """
-        single multiline comment 1 for value 5
-        """
-            )
-            return String(format: temp, arg1)
-        }
+static func key5(_ arg1: String) -> String {
+    let temp = String(
+        localized: "about.key5",
+        defaultValue: "String arg 5: %@",
+        comment: """
+single multiline comment 1 for value 5
+"""
+    )
+    return String(format: temp, arg1)
+}
 
-        static func key6(_ arg1: String) -> String {
-            let temp = String(
-                localized: "about.key6",
-                defaultValue: "String arg 6: %@"
-            )
-            return String(format: temp, arg1)
-        }
-    }
+static func key6(_ arg1: String) -> String {
+    let temp = String(
+        localized: "about.key6",
+        defaultValue: "String arg 6: %@"
+    )
+    return String(format: temp, arg1)
+}
+}
 ```
 
 ## Xcode autogeneration
