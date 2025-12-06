@@ -16,12 +16,13 @@ import SwiftDiagnostics
 public struct LocalizedStringsMacro: MemberMacro {
     private enum C {
         static let defaultEnum = "Strings"
-        static let defaultSeparator = "_"
+        static let defaultSeparator = "."
         static let defaultTable = "nil"
         static let defaultBundle = ".main"
         static let defaultComment = "nil"
 
-        static let templateSeparator = ", "
+        static let indent = String(repeating: " ", count: 4)
+        static let templateSeparator = ",\n\(C.indent)"
 
         static let quote = #"""#
         static let multilineQuote = #"""""#
@@ -30,16 +31,21 @@ public struct LocalizedStringsMacro: MemberMacro {
         static let backtickRegex = #/^`(\w+)`$/#
         static let formatRegex = #/%(?:(?<argnum>\d+)\$)?(?<flags>[-+#0])?(?<width>\d+|\*)?(?:\.(?<precision>\d+|\*))?(?<length>[hljztL]|hh|ll)?(?<specifier>[diuoxXfFeEgGaAcspn@])/#
 
-        static func localizedStringTemplate(name: String,
-                                            key: String,
-                                            table: String,
-                                            bundle: String,
-                                            quotedValue: String,
-                                            comment: String,
-                                            stripStatic: Bool = false) -> String {
+        static func localizedStringTemplate(
+            name: String,
+            key: String,
+            table: String,
+            bundle: String,
+            quotedValue: String,
+            comment: String,
+            stripStatic: Bool = false,
+            indent: String = ""
+        ) -> String {
             let `static` = stripStatic ? "" : "static "
+            let indent = C.indent + indent
+            let separator = ",\n\(indent)"
             var lines = [
-                "\(`static`)let \(name) = String(localized: \(key)",
+                "\(`static`)let \(name) = String(\n\(indent)localized: \(key)",
                 "defaultValue: \(quotedValue)",
             ]
             if table != C.defaultTable {
@@ -51,7 +57,7 @@ public struct LocalizedStringsMacro: MemberMacro {
             if comment != C.defaultComment {
                 lines.append("comment: \(comment)")
             }
-            return lines.joined(separator: C.templateSeparator) + ")"
+            return lines.joined(separator: separator) + "\n)"
         }
 
         static func localizedFunctionTemplate(name: String,
@@ -70,13 +76,16 @@ public struct LocalizedStringsMacro: MemberMacro {
 
             let lines = [
                 "static func \(name)(\(argsString)) -> String {",
-                "    " + localizedStringTemplate(name: "temp",
-                                                 key: key,
-                                                 table: table,
-                                                 bundle: bundle,
-                                                 quotedValue: quotedValue,
-                                                 comment: comment,
-                                                 stripStatic: true),
+                "    " + localizedStringTemplate(
+                    name: "temp",
+                    key: key,
+                    table: table,
+                    bundle: bundle,
+                    quotedValue: quotedValue,
+                    comment: comment,
+                    stripStatic: true,
+                    indent: String(repeating: " ", count: 4)
+                ),
                 "    return String(format: temp, \(formatArgs))",
                 "}"
             ]
@@ -186,16 +195,6 @@ public struct LocalizedStringsMacro: MemberMacro {
         return args
     }
 
-    enum L {
-        static let separatorChanging = NSLocalizedString("separator.warning",
-                                                               value: """
-            The default separator is changing from '_' to '.' as of version 1.0.0.
-            If you wish to keep using the underscore as a separator, it is suggested
-            that you add an explicit separator argument to the @LocalizedStrings macro.
-            """,
-                                                         comment: "")
-    }
-
     private enum Variables: String, CaseIterable, Hashable {
         case prefix
         case table
@@ -289,13 +288,6 @@ public struct LocalizedStringsMacro: MemberMacro {
 
         let variables = extractArgs(from: args)
 
-        if variables[.separator] == nil,
-           variables[.prefix] != nil {
-            let diagnostic = WarningDiagnostic.changing(message: L.separatorChanging,
-                                                        severity: .warning)
-            context.diagnose(Diagnostic(node: node,
-                                        message: diagnostic))
-        }
         // Set up variable replacements and their defaults
         let prefix = removeQuotesFromOptional(variables[.prefix])
         let table = variables[.table] ?? C.defaultTable
@@ -320,7 +312,7 @@ public struct LocalizedStringsMacro: MemberMacro {
             .compactMap({ $0.decl.as(EnumDeclSyntax.self) })
             .first(where: { $0.name.text == stringsEnum })
         else {
-            throw LocalizedStringsError.noStringsEnumFound
+            throw LocalizedStringsError.noStringsEnumFound(stringsEnum)
         }
 
         let resources = try stringsDecl.memberBlock
@@ -433,7 +425,7 @@ public struct LocalizedStringsMacro: MemberMacro {
     public enum LocalizedStringsError: LocalizedError {
         case parserError
         case appliesOnlyToEnumerations
-        case noStringsEnumFound
+        case noStringsEnumFound(String)
         case simpleParameter
         case invalidSeparator
         case stringFormatMissingIndex
@@ -444,7 +436,7 @@ public struct LocalizedStringsMacro: MemberMacro {
             switch self {
             case .parserError:  return "Parser error"
             case .appliesOnlyToEnumerations:  return "@LocalizedStrings only applies only to enumerations"
-            case .noStringsEnumFound:  return "@LocalizedStrings requires your enum contain an embedded Strings enum"
+            case .noStringsEnumFound(let name):  return "@LocalizedStrings requires your enum contain an embedded \(name) enum"
             case .simpleParameter:  return "@LocalizedString requires its parameters to be a simple String value"
             case .invalidSeparator: return "@LocalizedString requires separator parameter to be a quoted string"
             case .stringFormatMissingIndex:  return "String format parameters must either all use or none use index paramters"

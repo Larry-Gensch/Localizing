@@ -1,14 +1,14 @@
-/// 
-///   Localizing.swift
-///   Localizing
-/// 
-///   Created by Larry Gensch on 2/14/24.
-///   Copyright © 2024 by Larry Gensch. All rights reserved.
+//
+//   Localizing.swift
+//   Localizing
+//
+//   Created by Larry Gensch on 2/14/24.
+//   Copyright © 2024 by Larry Gensch. All rights reserved.
 
 import Foundation
 
 /// Use this macro to create localizable strings that are easily accessed within
-/// your code base and automatically updating into an existing string catalog
+/// your source code and automatically updating into an existing string catalog
 /// when your code is built.
 ///
 /// ## Parameters
@@ -25,17 +25,13 @@ import Foundation
 /// are not specified in the macro call, or if their resulting values are the same as the default (effectively,
 /// `nil` for `table` and `.main` for `bundle`.
 ///
-/// > Warning: When this package is upgraded to 1.0.0, **the default separator will be changed from underscore (\_)
-/// to a dot (.)**. As such, for users of version 0.9.x, a diagnostic warning will be emitted whenever
-/// a prefix is supplied without a separator that suggests adding a separator parameter to the macro call.
-/// This diagnostic will be removed in versions 1.0.0 of this package.
-///
 /// > Warning: In addition, the separator must be specified as a quoted string. Do not reference a variable when
 /// using the `separator:` parameter with the `@LocalizedStrings` macro.
 ///
 /// Simply prefix an `enum` with the `@LocalizedStrings()` macro (that may be
 /// called with optional parameters menioned above). Within this `enum`, create another  `enum`
-/// within it called `Strings`  (with a `RawValue` type `String`).
+/// within it called `Strings`  (with a `RawValue` type `String`). The `Strings enum` can be modified
+/// to a different name using the `stringsEnum` parameter to the macro.
 ///
 /// Each case in this internal enumeration will contain a localization key (the case name) and its
 /// associated `rawValue` (default value).
@@ -55,13 +51,13 @@ import Foundation
 ///
 /// The `separator:` parameter to the `@LocalizedStrings` macro is used to provide a separator
 /// that will be inserted between the `prefix:` value and the generated localization key.
-/// So, if the prefix is `"Screens.main"`, a good separator to use might be the dot (`"."`).
-/// By default, for versions 0.9.x, the separator is an underscore (`"_"`).
-/// This will change in 1.0.0 to dot (`"."`).
+/// So, if the prefix is `"Screens.main"`, a good separator to use might be the dot (`"."`),
+/// which also happens to be the default as of version 1.0.0. In previous (beta) versions, the default
+/// separator was an underscore (`"-"`).
 ///
 /// The `stringsEnum` specifies the name of an `enum` with a `RawValue` of type `String`. The cases
 /// within this enumeration are used to specify the base localization key ((`case` name) and the `rawValue`
-/// will be specified as the  default vallue that will used for creating localization constants.
+/// will be specified as the value that will used for creating the default localization constants.
 ///
 /// Once the macro is set up, it will generate constants within the enumeration it is applied
 /// to. These constants will map to constants of type `String(localized:)` with the following format
@@ -71,7 +67,8 @@ import Foundation
 /// static let key1 = String(localized: "prefix.key1",
 ///                          defaultValue: "Localized value 1",
 ///                          table: nil,
-///                          bundle: .main)
+///                          bundle: .main,
+///                          comment: nil)
 /// ```
 ///
 /// - term `name`: A case name found in the `stringsEnum` enumeration
@@ -82,8 +79,10 @@ import Foundation
 /// passed to the `@LocalizedStrings()` macro.
 /// - term `bundle`: Defaults to `.main` (and omitted), but can be overridden by the `bundle:` parameter
 /// passed to the `@LocalizedStrings()` macro.
-/// - term `comment`: Defaults to `""` (and omitted). Any comment desired for a particular localization key
-/// should precede the `case` key for the localization.
+/// - term `comment`: Defaults to `nil` (and omitted). Any comment desired for a particular localization key
+/// should precede the `case` key for the localization. Multiline C-style comments (`/* ... */`) and
+/// mulltiple line comments (`// ...`) are supported, and generate comments with newlines inserted between
+/// the lines.
 ///
 /// ## An example
 ///
@@ -91,24 +90,20 @@ import Foundation
 /// @LocalizedStrings(prefix: "about", separator: ".")
 /// enum L {
 ///     private enum Strings: String {
-///         // mutiple line comment 1 for key1
-///         // mutiple line comment 2 for key1
+///         // line 1 for key1
+///         // line 2 for key1
 ///         case key1 = "Localized value 1"
-/// 
-///         // single line comment 1 for key2
+///         // single line comment for key2
 ///         case key2 = "Localized value 2"
-/// 
-///         /* single line C-comment */
+///         /* one line C-comment */
 ///         case key3 = "Localized value 3"
-/// 
 ///         /*
-///          multiple line coment 1 for value 4
-///          multiple line comentfor value 4
+///          multiline coment 1 for value 4
+///          multiline coment 2 for value 4
 ///          */
 ///         case key4 = "Localized value 4"
-/// 
 ///         /*
-///          indented C-comment line 1 for value 5
+///          single multiline comment 1 for value 5
 ///          */
 ///         case key5 = "String arg 5: %@"
 ///         case key6 = "String arg 6: %@"
@@ -119,52 +114,48 @@ import Foundation
 /// ```swift
 /// enum L {
 ///     private enum Strings: String {
-///         // mutiple line comment 1 for key1
-///         // mutiple line comment 2 for key1
+///         // line 1 for key1
+///         // line 2 for key1
 ///         case key1 = "Localized value 1"
-/// 
-///         // single line comment 1 for key2
+///         // single line comment for key2
 ///         case key2 = "Localized value 2"
-/// 
-///         /* single line C-comment */
+///         /* one line C-comment */
 ///         case key3 = "Localized value 3"
-/// 
 ///         /*
-///          multiple line comment 1 for value 4
+///          multiline coment 1 for value 4
+///          multiline coment 2 for value 4
 ///          */
 ///         case key4 = "Localized value 4"
-/// 
-///         case key5 = "String arg 6: %@"
+///         /*
+///          single multiline comment 1 for value 5
+///          */
+///         case key5 = "String arg 5: %@"
+///         case key6 = "String arg 6: %@"
 ///     }
-///     static let key1 = String(localized: "about.key1",
-///                              defaultValue: "Localized value 1",
-///                              comment: """
-///         line 1 for key1
-///         line 2 for key1
-///         """)
-///     static let key2 = String(localized: "about.key2",
-///                              defaultValue: "Localized value 2",
-///                              comment: "line 1 for key2")
-///     static let key3 = String(localized: "about.key3",
-///                              defaultValue: "Localized value 3",
-///                              comment: "one line C-comment")
-///     static let key4 = String(localized: "about.key4",
-///                              defaultValue: "Localized value 4",
-///                              comment: """
-///         multiline coment 1 for value 4
-///         multiline coment 2 for value 4
-///         """)
+/// 
+///     static let key1 = String(localized: "about.key1", defaultValue: "Localized value 1", comment: \(multiLineComment)
+///                              line 1 for key1
+///                              line 2 for key1
+///                              \(multiLineComment))
+/// 
+///     static let key2 = String(localized: "about.key2", defaultValue: "Localized value 2", comment: "single line comment for key2")
+/// 
+///     static let key3 = String(localized: "about.key3", defaultValue: "Localized value 3", comment: "one line C-comment")
+/// 
+///     static let key4 = String(localized: "about.key4", defaultValue: "Localized value 4", comment: \(multiLineComment)
+///                              multiline coment 1 for value 4
+///                              multiline coment 2 for value 4
+///                              \(multiLineComment))
+/// 
 ///     static func key5(_ arg1: String) -> String {
-///         let temp = String(localized: "about.key5",
-///                           defaultValue: "String arg 5: %@",
-///                           comment: """
-///         single multiline comment 1 for value 5
-///         """)
+///         let temp = String(localized: "about.key5", defaultValue: "String arg 5: %@", comment: \(multiLineComment)
+///                           single multiline comment 1 for value 5
+///                           \(multiLineComment))
 ///         return String(format: temp, arg1)
 ///     }
+/// 
 ///     static func key6(_ arg1: String) -> String {
-///         let temp = String(localized: "about.key6",
-///                           defaultValue: "String arg 6: %@")
+///         let temp = String(localized: "about.key6", defaultValue: "String arg 6: %@")
 ///         return String(format: temp, arg1)
 ///     }
 /// }
@@ -178,7 +169,8 @@ import Foundation
 ///
 /// The expansion generated by this macro will be noticed by Xcode, and
 /// Xcode will automatically create entries into the appropriate string catalog
-/// for you.
+/// for you. Thus, you can define and comment your macros within your source
+/// code and still be able to generate a strings catalog suitable for translation.
 ///
 /// For more information, consult the `README.md` file in this package.
 @attached(member, names: arbitrary)

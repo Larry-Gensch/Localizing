@@ -23,7 +23,7 @@ let testMacros: [String: Macro.Type] = [
 
 final class LocalizingTests: XCTestCase {
     func testComments() throws {
-        #if canImport(LocalizingMacros)
+#if canImport(LocalizingMacros)
         let multiLineComment = String(String(repeating: "\"", count: 3))
         assertMacroExpansion(
             """
@@ -33,17 +33,17 @@ final class LocalizingTests: XCTestCase {
                     // line 1 for key1
                     // line 2 for key1
                     case key1 = "Localized value 1"
-                    // line 1 for key2
+                    // single line comment for key2
                     case key2 = "Localized value 2"
-                    /* one line C-comment*/
+                    /* one line C-comment */
                     case key3 = "Localized value 3"
                     /*
-                     multiline coment 1 for value 4
-                     multiline coment 2 for value 4
+                     multiline coment 1 for key 4
+                     multiline coment 2 for key 4
                     */
                     case key4 = "Localized value 4"
                     /*
-                     single multiline comment 1 for value 5
+                     single multiline comment 1 for key 5
                     */
                     case key5 = "String arg 5: %@"
                     case key6 = "String arg 6: %@"
@@ -54,48 +54,71 @@ final class LocalizingTests: XCTestCase {
             """
             enum L {
                 private enum Strings: String {
-                    // mutiple line comment 1 for key1
-                    // mutiple line comment 2 for key1
+                    // line 1 for key1
+                    // line 2 for key1
                     case key1 = "Localized value 1"
-                    // single line comment 1 for key2
+                    // single line comment for key2
                     case key2 = "Localized value 2"
-                    /* single line C-comment */
+                    /* one line C-comment */
                     case key3 = "Localized value 3"
                     /*
-                     multiple line coment 1 for value 4
-                     multiple line comentfor value 4
+                     multiline coment 1 for key 4
+                     multiline coment 2 for key 4
                     */
                     case key4 = "Localized value 4"
                     /*
-                     indented C-comment line 1 for value 5
+                     single multiline comment 1 for key 5
                     */
                     case key5 = "String arg 5: %@"
                     case key6 = "String arg 6: %@"
                 }
             
-                static let key1 = String(localized: "about.key1", defaultValue: "Localized value 1", comment: \(multiLineComment)
+                static let key1 = String(
+                    localized: "about.key1",
+                    defaultValue: "Localized value 1",
+                    comment: \(multiLineComment)
                 line 1 for key1
                 line 2 for key1
-                \(multiLineComment))
-
-                static let key2 = String(localized: "about.key2", defaultValue: "Localized value 2", comment: "line 1 for key2")
-
-                static let key3 = String(localized: "about.key3", defaultValue: "Localized value 3", comment: "one line C-comment")
-
-                static let key4 = String(localized: "about.key4", defaultValue: "Localized value 4", comment: \(multiLineComment)
-                multiline coment 1 for value 4
-                multiline coment 2 for value 4
-                \(multiLineComment))
-
+                \(multiLineComment)
+                )
+            
+                static let key2 = String(
+                    localized: "about.key2",
+                    defaultValue: "Localized value 2",
+                    comment: "single line comment for key2"
+                )
+            
+                static let key3 = String(
+                    localized: "about.key3",
+                    defaultValue: "Localized value 3",
+                    comment: "one line C-comment"
+                )
+            
+                static let key4 = String(
+                    localized: "about.key4",
+                    defaultValue: "Localized value 4",
+                    comment: \(multiLineComment)
+                multiline coment 1 for key 4
+                multiline coment 2 for key 4
+                \(multiLineComment)
+                )
+            
                 static func key5(_ arg1: String) -> String {
-                    let temp = String(localized: "about.key5", defaultValue: "String arg 5: %@", comment: \(multiLineComment)
-                single multiline comment 1 for value 5
-                \(multiLineComment))
+                    let temp = String(
+                        localized: "about.key5",
+                        defaultValue: "String arg 5: %@",
+                        comment: \(multiLineComment)
+                single multiline comment 1 for key 5
+                \(multiLineComment)
+                    )
                     return String(format: temp, arg1)
                 }
-
+            
                 static func key6(_ arg1: String) -> String {
-                    let temp = String(localized: "about.key6", defaultValue: "String arg 6: %@")
+                    let temp = String(
+                        localized: "about.key6",
+                        defaultValue: "String arg 6: %@"
+                    )
                     return String(format: temp, arg1)
                 }
             }
@@ -103,9 +126,9 @@ final class LocalizingTests: XCTestCase {
 
             macros: testMacros
         )
-        #else
+#else
         throw XCTSkip("macros are only supported when running tests for the host platform")
-        #endif
+#endif
     }
 
     func testMacroPrefix() throws {
@@ -129,13 +152,22 @@ final class LocalizingTests: XCTestCase {
                     case key2 = "Localized value 2"
                     case key3 = "String arg: %@"
                 }
-
-                static let key1 = String(localized: "about.key1", defaultValue: "Localized value 1")
-
-                static let key2 = String(localized: "about.key2", defaultValue: "Localized value 2")
-
+            
+                static let key1 = String(
+                    localized: "about.key1",
+                    defaultValue: "Localized value 1"
+                )
+            
+                static let key2 = String(
+                    localized: "about.key2",
+                    defaultValue: "Localized value 2"
+                )
+            
                 static func key3(_ arg1: String) -> String {
-                    let temp = String(localized: "about.key3", defaultValue: "String arg: %@")
+                    let temp = String(
+                        localized: "about.key3",
+                        defaultValue: "String arg: %@"
+                    )
                     return String(format: temp, arg1)
                 }
             }
@@ -167,10 +199,18 @@ final class LocalizingTests: XCTestCase {
                     case key1 = "Localized value 1"
                     case key2 = "Localized value 2"
                 }
-
-                static let key1 = String(localized: "key1", defaultValue: "Localized value 1", table: "tbl")
-
-                static let key2 = String(localized: "key2", defaultValue: "Localized value 2", table: "tbl")
+            
+                static let key1 = String(
+                    localized: "key1",
+                    defaultValue: "Localized value 1",
+                    table: "tbl"
+                )
+            
+                static let key2 = String(
+                    localized: "key2",
+                    defaultValue: "Localized value 2",
+                    table: "tbl"
+                )
             }
             """,
 
@@ -202,12 +242,21 @@ final class LocalizingTests: XCTestCase {
                     case key2 = "Localized value 2"
                     case key3
                 }
-
-                static let key1 = String(localized: "key1", defaultValue: "Localized value 1")
-
-                static let key2 = String(localized: "key2", defaultValue: "Localized value 2")
-
-                static let key3 = String(localized: "key3", defaultValue: "key3")
+            
+                static let key1 = String(
+                    localized: "key1",
+                    defaultValue: "Localized value 1"
+                )
+            
+                static let key2 = String(
+                    localized: "key2",
+                    defaultValue: "Localized value 2"
+                )
+            
+                static let key3 = String(
+                    localized: "key3",
+                    defaultValue: "key3"
+                )
             }
             """,
 
@@ -239,12 +288,21 @@ final class LocalizingTests: XCTestCase {
                     case key2 = "Localized value 2"
                     case key3
                 }
-
-                static let key1 = String(localized: "key1", defaultValue: "Localized value 1")
-
-                static let key2 = String(localized: "key2", defaultValue: "Localized value 2")
-
-                static let key3 = String(localized: "key3", defaultValue: "key3")
+            
+                static let key1 = String(
+                    localized: "key1",
+                    defaultValue: "Localized value 1"
+                )
+            
+                static let key2 = String(
+                    localized: "key2",
+                    defaultValue: "Localized value 2"
+                )
+            
+                static let key3 = String(
+                    localized: "key3",
+                    defaultValue: "key3"
+                )
             }
             """,
 
@@ -277,12 +335,21 @@ final class LocalizingTests: XCTestCase {
                     case key2 = "Localized value 2"
                     case key3
                 }
-
-                static let key1 = String(localized: "Screens.MainScreen.key1", defaultValue: "Localized value 1")
-
-                static let key2 = String(localized: "Screens.MainScreen.key2", defaultValue: "Localized value 2")
-
-                static let key3 = String(localized: "Screens.MainScreen.key3", defaultValue: "key3")
+            
+                static let key1 = String(
+                    localized: "Screens.MainScreen.key1",
+                    defaultValue: "Localized value 1"
+                )
+            
+                static let key2 = String(
+                    localized: "Screens.MainScreen.key2",
+                    defaultValue: "Localized value 2"
+                )
+            
+                static let key3 = String(
+                    localized: "Screens.MainScreen.key3",
+                    defaultValue: "key3"
+                )
             }
             """,
 
@@ -314,12 +381,21 @@ final class LocalizingTests: XCTestCase {
                     case key2 = "Localized value 2"
                     case key3
                 }
-
-                static let key1 = String(localized: "key1", defaultValue: "Localized value 1")
-
-                static let key2 = String(localized: "key2", defaultValue: "Localized value 2")
-
-                static let key3 = String(localized: "key3", defaultValue: "key3")
+            
+                static let key1 = String(
+                    localized: "key1",
+                    defaultValue: "Localized value 1"
+                )
+            
+                static let key2 = String(
+                    localized: "key2",
+                    defaultValue: "Localized value 2"
+                )
+            
+                static let key3 = String(
+                    localized: "key3",
+                    defaultValue: "key3"
+                )
             }
             """,
 
@@ -338,7 +414,7 @@ final class LocalizingTests: XCTestCase {
             """
             @objc class SomeClass: NSObject { }
             let bundle = Bundle(for: SomeClass.self)
-
+            
             @LocalizedStrings(bundle: bundle)
             enum L {
                 private enum Strings: String {
@@ -358,12 +434,24 @@ final class LocalizingTests: XCTestCase {
                     case key2 = "Localized value 2"
                     case key3
                 }
-
-                static let key1 = String(localized: "key1", defaultValue: "Localized value 1", bundle: bundle)
-
-                static let key2 = String(localized: "key2", defaultValue: "Localized value 2", bundle: bundle)
-
-                static let key3 = String(localized: "key3", defaultValue: "key3", bundle: bundle)
+            
+                static let key1 = String(
+                    localized: "key1",
+                    defaultValue: "Localized value 1",
+                    bundle: bundle
+                )
+            
+                static let key2 = String(
+                    localized: "key2",
+                    defaultValue: "Localized value 2",
+                    bundle: bundle
+                )
+            
+                static let key3 = String(
+                    localized: "key3",
+                    defaultValue: "key3",
+                    bundle: bundle
+                )
             }
             """,
 
@@ -395,12 +483,21 @@ final class LocalizingTests: XCTestCase {
                     case `associatedtype` = "Localized value 2"
                     case key3
                 }
-
-                static let `class` = String(localized: "class", defaultValue: "Localized value 1")
-
-                static let `associatedtype` = String(localized: "associatedtype", defaultValue: "Localized value 2")
-
-                static let key3 = String(localized: "key3", defaultValue: "key3")
+            
+                static let `class` = String(
+                    localized: "class",
+                    defaultValue: "Localized value 1"
+                )
+            
+                static let `associatedtype` = String(
+                    localized: "associatedtype",
+                    defaultValue: "Localized value 2"
+                )
+            
+                static let key3 = String(
+                    localized: "key3",
+                    defaultValue: "key3"
+                )
             }
             """,
 
@@ -410,50 +507,5 @@ final class LocalizingTests: XCTestCase {
         throw XCTSkip("macros are only supported when running tests for the host platform")
 #endif
     }
-
-    func testSeparatorDiagnostic() throws {
-#if canImport(LocalizingMacros)
-        let message = """
-            The default separator is changing from '_' to '.' as of version 1.0.0.
-            If you wish to keep using the underscore as a separator, it is suggested
-            that you add an explicit separator argument to the @LocalizedStrings macro.
-            """
-
-        let diagSpec = DiagnosticSpec(message: message,
-                                      line: 1,
-                                      column: 1,
-                                      severity: .warning)
-        assertMacroExpansion(
-            """
-            @LocalizedStrings(prefix: "about", table: "tbl")
-            enum L {
-                private enum Strings: String {
-                    case key1 = "Localized value 1"
-                    case key2 = "Localized value 2"
-                }
-            }
-            """,
-            expandedSource:
-            """
-            enum L {
-                private enum Strings: String {
-                    case key1 = "Localized value 1"
-                    case key2 = "Localized value 2"
-                }
-
-                static let key1 = String(localized: "about_key1", defaultValue: "Localized value 1", table: "tbl")
-
-                static let key2 = String(localized: "about_key2", defaultValue: "Localized value 2", table: "tbl")
-            }
-            """,
-            diagnostics: [diagSpec],
-
-            macros: testMacros
-        )
-#else
-        throw XCTSkip("macros are only supported when running tests for the host platform")
-#endif
-    }
-
 
 }
